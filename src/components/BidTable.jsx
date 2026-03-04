@@ -189,9 +189,9 @@ export default function BidTable() {
                       onClick={() => dispatch({ type: 'CYCLE_QTY_MODE', itemId: item.id })}
                       title="Click to cycle: Primary (from project basis) → LS (1) → Manual (EA)">
                       {item.qtyMode === 'manual' ? (
-                        <input className="ei ei-s" type="number" value={item.manualQty || 0}
+                        <input className="ei ei-s" type="number" value={item.manualQty === '' || item.manualQty == null ? '' : item.manualQty}
                           onClick={e => e.stopPropagation()}
-                          onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'manualQty', value: parseFloat(e.target.value) || 0 })} />
+                          onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'manualQty', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
                       ) : item.qtyMode === 'lf' ? num(q) : '1'}
                     </td>
 
@@ -212,15 +212,15 @@ export default function BidTable() {
 
                     {/* Unit Cost */}
                     <td data-col="uc" className={`r ${!colVisible('uc') ? 'hide-in-export' : ''}`}>
-                      <input className="ei" type="number" step="0.01" value={item.uc}
-                        onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'uc', value: parseFloat(e.target.value) || 0 })} />
+                      <input className="ei" type="number" step="0.01" value={item.uc === '' || item.uc == null ? '' : item.uc}
+                        onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'uc', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
                     </td>
                     <td data-col="material" className={`r n ${!colVisible('material') ? 'hide-in-export' : ''}`}>{currency(mat)}</td>
 
                     {/* Duration */}
                     <td data-col="days" className={`c ${!colVisible('days') ? 'hide-in-export' : ''}`}>
-                      <input className="ei ei-s qi" type="number" step="0.1" value={item.dur || 0}
-                        onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'dur', value: parseFloat(e.target.value) || 0 })} />
+                      <input className="ei ei-s qi" type="number" step="0.1" value={item.dur === '' || item.dur == null ? '' : item.dur}
+                        onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'dur', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
                     </td>
 
                     {/* Resource dropdown */}
@@ -247,8 +247,8 @@ export default function BidTable() {
 
                     {/* Count */}
                     <td data-col="count" className={`c ${!colVisible('count') ? 'hide-in-export' : ''}`}>
-                      <input className="ei ei-s qi" type="number" step="1" value={item.rateCt || 0}
-                        onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'rateCt', value: parseFloat(e.target.value) || 0 })} />
+                      <input className="ei ei-s qi" type="number" step="1" value={item.rateCt === '' || item.rateCt == null ? '' : item.rateCt}
+                        onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'rateCt', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
                     </td>
 
                     {/* Labor $ */}
@@ -259,8 +259,8 @@ export default function BidTable() {
                           {currency(lab)}<span className="auto-tag">auto</span>
                         </span>
                       ) : (
-                        <input className="ei li" type="number" step="1" value={item.labor || 0}
-                          onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'labor', value: parseFloat(e.target.value) || 0 })} />
+                        <input className="ei li" type="number" step="1" value={item.labor === '' || item.labor == null ? '' : item.labor}
+                          onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'labor', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
                       )}
                     </td>
 
@@ -272,9 +272,9 @@ export default function BidTable() {
                           {currency(eq)}<span className="auto-tag">auto</span>
                         </span>
                       ) : (
-                        <input className="ei" type="number" step="1" value={item.equip || 0}
+                        <input className="ei" type="number" step="1" value={item.equip === '' || item.equip == null ? '' : item.equip}
                           style={{ background: 'var(--amber-pale)' }}
-                          onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'equip', value: parseFloat(e.target.value) || 0 })} />
+                          onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'equip', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
                       )}
                     </td>
 
@@ -286,10 +286,11 @@ export default function BidTable() {
                         return <td key={col.id} data-col={col.id} className={`r n${hide}`} style={{ color: 'var(--blue)' }}>{currency(evaluateFormula(col.formula, item, controlsOrLength, rates, customCols))}</td>;
                       }
                       if (col.type === 'currency' || col.type === 'number') {
+                        const displayVal = (val === '' || val == null) ? '' : val;
                         return (
                           <td key={col.id} data-col={col.id} className={`r${hide}`}>
-                            <input className="ei" type="number" step="0.01" value={val}
-                              onChange={e => dispatch({ type: 'UPDATE_ITEM_CUSTOM', itemId: item.id, colId: col.id, value: parseFloat(e.target.value) || 0 })} />
+                            <input className="ei" type="number" step="0.01" value={displayVal}
+                              onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM_CUSTOM', itemId: item.id, colId: col.id, value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
                           </td>
                         );
                       }

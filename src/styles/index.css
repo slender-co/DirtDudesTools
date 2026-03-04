@@ -16,11 +16,12 @@ table, th, td, span, div, p, h1, h2, h3, h4, label, a {
   font-family: var(--font-app) !important;
 }
 
+html { font-size: 15px; }
 body {
   font-family: var(--font-app);
   background: var(--surface-alt);
   color: var(--text);
-  font-size: 13px;
+  font-size: 1rem;
   line-height: 1.5;
 }
 
@@ -405,7 +406,7 @@ select, option {
 /* ─── TABLE ─────────────────────────────────────────────────────── */
 .bp table { min-width: 1200px; }
 table { width: 100%; border-collapse: collapse; }
-th { background: var(--navy); color: #fff; padding: 8px 10px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; text-align: left; position: sticky; top: 0; z-index: 2; white-space: nowrap; }
+th { background: var(--navy); color: #fff; padding: 8px 10px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; text-align: left; position: sticky; top: 0; z-index: 2; white-space: nowrap; }
 th.r { text-align: right; }
 th.c { text-align: center; }
 th.mc { background: #1a4a6e; }  /* Material columns */
@@ -413,9 +414,9 @@ th.lc { background: #2d5a1e; }  /* Labor columns */
 th.ec { background: #7c4a10; }  /* Equipment columns */
 th.dc { background: #581c87; }  /* Duration/resource columns */
 
-td { padding: 6px 10px; border-bottom: 1px solid var(--gray-100); font-size: 11px; vertical-align: middle; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--gray-100); font-size: 0.85rem; vertical-align: middle; }
 tr:hover td { background: var(--blue-pale); }
-td.n { font-family: var(--font-mono); font-size: 10px; font-weight: 400; }
+td.n { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 400; color: var(--text); }
 td.r { text-align: right; }
 td.c { text-align: center; }
 
@@ -434,10 +435,21 @@ td.c { text-align: center; }
 .sr td { background: var(--blue-light) !important; font-weight: 400; border-top: 2px solid var(--blue); font-size: 10px; }
 
 /* ─── INPUTS ────────────────────────────────────────────────────── */
+/* Number input: ensure value is always visible (color, size); hide spinners to avoid stuck values */
+input[type="number"] {
+  color: var(--text) !important;
+  font-size: 0.9rem !important;
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 /* Editable number input (amber background = editable cost) */
-.ei { width: 62px; padding: 2px 4px; border: 1px solid var(--gray-300); border-radius: 3px; font-family: var(--font-mono); font-size: 10px; text-align: right; background: var(--amber-pale); font-weight: 400; }
-.ei:focus { outline: none; border-color: var(--amber); box-shadow: 0 0 0 2px rgba(217,119,6,0.15); background: #fff; }
-.ei-s { width: 42px; }
+.ei { width: 68px; min-width: 44px; padding: 6px 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-family: var(--font-mono); font-size: 0.9rem; text-align: right; background: var(--amber-pale); font-weight: 400; color: var(--text) !important; }
+.ei:focus { outline: none; border-color: var(--amber); box-shadow: 0 0 0 2px rgba(217,119,6,0.15); background: #fff; color: var(--text) !important; }
+.ei-s { width: 48px; }
 
 /* Labor input variant (green tint) */
 .li { background: #f0fdf4 !important; border-color: #bbf7d0 !important; }

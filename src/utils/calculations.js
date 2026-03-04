@@ -36,7 +36,7 @@ export function getQty(item, controlsOrWallLength) {
   const mode = item.qtyMode || 'lf';
 
   if (mode === 'ls') return 1;
-  if (mode === 'manual') return item.manualQty ?? 0;
+  if (mode === 'manual') return Number(item.manualQty) || 0;
 
   // 'lf' or 'primary': use project basis by line-item unit
   const unit = (item.unit || 'LS').toUpperCase();
@@ -47,6 +47,13 @@ export function getQty(item, controlsOrWallLength) {
   return basis.length || 0;
 }
 
+/** Coerce to number for calculations; empty string / null / undefined → 0 (fixes "stuck 0" when user clears field) */
+function toNum(v) {
+  if (v === '' || v == null) return 0;
+  const n = Number(v);
+  return Number.isNaN(n) ? 0 : n;
+}
+
 /** Look up a rate card by id */
 export function getRate(rates, rateId) {
   return rates.find(r => r.id === rateId) || null;
@@ -54,7 +61,7 @@ export function getRate(rates, rateId) {
 
 /** Material cost = Qty × Unit Cost */
 export function getMaterial(item, controlsOrWallLength) {
-  return getQty(item, controlsOrWallLength) * (item.uc || 0);
+  return getQty(item, controlsOrWallLength) * toNum(item.uc);
 }
 
 /** Labor cost — auto-calculated from rate card, or manual entry */
@@ -62,10 +69,10 @@ export function getLabor(item, rates) {
   if (item.rateId) {
     const rate = getRate(rates, item.rateId);
     if (rate && rate.cat === 'labor') {
-      return rate.rate * (item.dur || 0) * (item.rateCt || 0);
+      return toNum(rate.rate) * toNum(item.dur) * toNum(item.rateCt);
     }
   }
-  return item.labor || 0;
+  return toNum(item.labor);
 }
 
 /** Equipment cost — auto-calculated from rate card, or manual entry */
@@ -73,10 +80,10 @@ export function getEquip(item, rates) {
   if (item.rateId) {
     const rate = getRate(rates, item.rateId);
     if (rate && rate.cat === 'equip') {
-      return rate.rate * (item.dur || 0) * (item.rateCt || 0);
+      return toNum(rate.rate) * toNum(item.dur) * toNum(item.rateCt);
     }
   }
-  return item.equip || 0;
+  return toNum(item.equip);
 }
 
 /** Line total = Material + Labor + Equipment */
@@ -118,7 +125,7 @@ export function sectionTotal(section, wallLength, rates) {
 
 /** Peak duration within a section (max of any single item's duration) */
 export function sectionDuration(section) {
-  return Math.max(...section.items.map(i => i.dur || 0), 0);
+  return Math.max(...section.items.map(i => toNum(i.dur)), 0);
 }
 
 // ─── GRAND TOTALS ─────────────────────────────────────────────────
@@ -200,12 +207,12 @@ export function evaluateFormula(formula, item, controlsOrWallLength, rates, cust
     const basis = getBasis(controls);
     const context = {
       qty:   getQty(item, controls),
-      uc:    item.uc || 0,
+      uc:    toNum(item.uc),
       mat:   getMaterial(item, controls),
       lab:   getLabor(item, rates),
       eq:    getEquip(item, rates),
       total: getLineTotal(item, controls, rates),
-      dur:   item.dur || 0,
+      dur:   toNum(item.dur),
       lf:    basis.length,
       sf:    basis.area,
       cy:    basis.volume,

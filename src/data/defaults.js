@@ -66,6 +66,12 @@ export const blankSections = [
   },
 ];
 
+/** Empty rates for blank bid — add rates in Rates tab; they populate Line items Resource dropdown. */
+export const blankRates = [];
+
+/** Empty cost allocation for blank bid — add rows in Breakdown tab; they use bid total/target. */
+export const blankPLF = [];
+
 export const blankNotes = [
   { id: 'ns1', title: 'Notes', items: [{ id: 'n1', text: '' }] },
 ];

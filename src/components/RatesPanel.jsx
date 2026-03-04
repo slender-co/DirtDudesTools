@@ -10,16 +10,20 @@ export default function RatesPanel() {
   const equipRates = rates.filter(r => r.cat === 'equip');
 
   const updateRate = (id, field, value) => {
-    dispatch({ type: 'UPDATE_RATE', rateId: id, field, value: field === 'rate' ? (parseFloat(value) || 0) : value });
+    const rateValue = field === 'rate' ? (value === '' ? '' : (parseFloat(value) || 0)) : value;
+    dispatch({ type: 'UPDATE_RATE', rateId: id, field, value: rateValue });
   };
+
+  const hasRates = rates.length > 0;
 
   return (
     <div className="rates-panel">
       <div style={{ marginBottom: 16 }}>
         <h3 style={{ fontSize: 16, color: 'var(--navy)', marginBottom: 4 }}>Resource Rate Cards</h3>
         <p style={{ fontSize: 12, color: 'var(--gray-500)' }}>
-          Define labor and equipment day-rates here. These populate the Resource dropdown in the bid table.
-          Fractional days are supported — 0.8 days × $250/day = $200.
+          {hasRates
+            ? 'Define labor and equipment day-rates here. They populate the Resource dropdown in Line items. Fractional days supported — 0.8 days × $250/day = $200.'
+            : 'No rates yet. Add labor and equipment rates below — they’ll appear in the Line items Resource dropdown and Summary will reflect costs as you assign them.'}
         </p>
       </div>
 
@@ -32,7 +36,7 @@ export default function RatesPanel() {
           {laborRates.map(r => (
             <div key={r.id} className="rate-row">
               <input className="rn" value={r.name} onChange={e => updateRate(r.id, 'name', e.target.value)} />
-              <input className="rr" type="number" step="1" value={r.rate} onChange={e => updateRate(r.id, 'rate', e.target.value)} />
+              <input className="rr" type="number" step="1" value={r.rate === '' || r.rate == null ? '' : r.rate} onChange={e => updateRate(r.id, 'rate', e.target.value)} />
               <input className="ru" value={r.unit} onChange={e => updateRate(r.id, 'unit', e.target.value)} />
               <button className="db" onClick={() => dispatch({ type: 'DELETE_RATE', rateId: r.id })}>✕</button>
             </div>
@@ -52,7 +56,7 @@ export default function RatesPanel() {
           {equipRates.map(r => (
             <div key={r.id} className="rate-row">
               <input className="rn" value={r.name} onChange={e => updateRate(r.id, 'name', e.target.value)} />
-              <input className="rr" type="number" step="1" value={r.rate} onChange={e => updateRate(r.id, 'rate', e.target.value)} />
+              <input className="rr" type="number" step="1" value={r.rate === '' || r.rate == null ? '' : r.rate} onChange={e => updateRate(r.id, 'rate', e.target.value)} />
               <input className="ru" value={r.unit} onChange={e => updateRate(r.id, 'unit', e.target.value)} />
               <button className="db" onClick={() => dispatch({ type: 'DELETE_RATE', rateId: r.id })}>✕</button>
             </div>

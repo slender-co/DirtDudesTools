@@ -19,7 +19,7 @@ import React, { createContext, useContext, useReducer, useCallback, useEffect, u
 import {
   defaultRates, defaultSections, defaultPLF,
   defaultNotes, defaultControls, defaultHeader,
-  blankSections, blankNotes,
+  blankSections, blankNotes, blankRates, blankPLF,
 } from '../data/defaults';
 import { uid } from '../utils/formatters';
 import {
@@ -58,14 +58,14 @@ function getDefaultBidState(overrides = {}) {
   };
 }
 
-/** Blank template: one section, one row. Same columns; rates/plf kept for dropdowns. */
+/** Blank template: one section, one row; no rates, no breakdown rows. Fill bid → Rates/Breakdown/Summary populate from same state. */
 function getBlankBidState(headerOverrides = {}) {
   return {
     header:     { ...clone(defaultHeader), ...headerOverrides },
     controls:   clone(defaultControls),
     sections:   clone(blankSections),
-    rates:      clone(defaultRates),
-    plf:        clone(defaultPLF),
+    rates:      clone(blankRates),
+    plf:        clone(blankPLF),
     notes:      clone(blankNotes),
     customCols: [],
     exportColumnVisibility: {},
@@ -262,9 +262,25 @@ function bidReducer(state, action) {
     // ── PLF ────────────────────────────────
     case 'UPDATE_PLF': {
       const plf = state.plf.map(p =>
-        p.id === action.plfId ? { ...p, pct: action.pct } : p
+        p.id === action.plfId
+          ? (action.field !== undefined ? { ...p, [action.field]: action.value } : { ...p, pct: action.pct })
+          : p
       );
       return { ...state, plf, dirty: true };
+    }
+    case 'ADD_PLF': {
+      const colors = ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#d97706', '#f59e0b', '#10b981', '#6366f1'];
+      const newItem = {
+        id: uid('pc'),
+        label: action.label ?? 'Cost component',
+        group: action.group ?? 'wall',
+        pct: 0,
+        color: colors[state.plf.length % colors.length],
+      };
+      return { ...state, plf: [...state.plf, newItem], dirty: true };
+    }
+    case 'DELETE_PLF': {
+      return { ...state, plf: state.plf.filter(p => p.id !== action.plfId), dirty: true };
     }
 
     // ── NOTES ──────────────────────────────
