@@ -51,7 +51,11 @@ export const defaultRates = [
 const item = (id, desc, unit, uc, notes, qtyMode = 'lf', dur = 0, rateId = '', rateCt = 0) => ({
   id, desc, unit, uc, notes, qtyMode, dur, rateId, rateCt,
   labor: 0, equip: 0, manualQty: 0, custom: {},
+  hiddenFromExport: false,
 });
+
+/** Column keys for Line items table (fixed + custom ids). Used for export visibility. */
+export const BID_TABLE_COL_KEYS = ['del', 'num', 'desc', 'qty', 'unit', 'uc', 'material', 'days', 'resource', 'count', 'labor', 'equip', 'total', 'notes'];
 
 // ─── BLANK TEMPLATE (one section, one row — for new projects & reset) ─
 export const blankSections = [

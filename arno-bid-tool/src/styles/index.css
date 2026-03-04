@@ -543,14 +543,60 @@ td.c { text-align: center; }
 .modal-actions .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ─── PRINT STYLES ──────────────────────────────────────────────── */
+.print-only-title { display: none; }
+
+/* Line items: totals in their own section (not table rows) */
+.bid-totals-section {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  max-width: 360px;
+}
+.bid-totals-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 12px;
+  font-family: var(--font-sans);
+}
+.bid-totals-label { color: var(--gray-700); font-weight: 500; }
+.bid-totals-value { font-family: var(--font-mono); font-weight: 400; color: var(--navy); }
+.bid-totals-grand {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 2px solid var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+}
+.bid-totals-grand .bid-totals-value { font-size: 14px; }
+
 @media print {
-  body { background: #fff; font-size: 9px; }
+  body { background: #fff; font-size: 10px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .app-layout { display: block; }
-  .sidebar, .topbar, .tabs-wrap, .tabs, .prb, .toast, .mo, .ar, .db, .cm, .rate-add, .projects-page, .select-project-prompt { display: none !important; }
-  .main { padding: 0; }
-  .main-content { max-width: 100%; padding: 0; }
-  .ei, .et, .pi, .hdr-edit, .li, .qi, .rs { border: none !important; background: none !important; padding: 0; box-shadow: none !important; }
+  .sidebar, .topbar, .tabs-wrap, .tabs, .prb, .toast, .mo, .ar, .db, .cm, .rate-add, .projects-page, .select-project-prompt,
+  .no-print, .export-toggle, .sh-del { display: none !important; }
+  .main { padding: 0; margin: 0; }
+  .main-content { max-width: 100%; padding: 0 8px; }
+  .printable-content { break-inside: avoid; }
+  .print-only-title {
+    display: block !important;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #ccc;
+    color: #000;
+  }
+  /* Only the active tab is in DOM; clean up inputs for read-only look */
+  .ei, .et, .pi, .hdr-edit, .li, .qi, .rs, .sh-edit, .sh-del, .sh .sb2 { border: none !important; background: transparent !important; box-shadow: none !important; }
   .header { border-radius: 0; background: #fff !important; color: #000 !important; }
-  .hdr-edit { color: #000 !important; }
-  .hdr-auto { color: #333 !important; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { padding: 4px 6px; border: 1px solid #ddd; }
+  th { background: #f5f5f5 !important; font-weight: 600; }
+  /* Hide columns/rows marked for export exclusion */
+  .hide-in-export { display: none !important; }
+  .bid-totals-section { margin-top: 12px; padding: 10px 12px; border: 1px solid #ddd; background: #f9f9f9; }
 }

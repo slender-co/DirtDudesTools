@@ -53,6 +53,7 @@ function getDefaultBidState(overrides = {}) {
     plf:        clone(defaultPLF),
     notes:      clone(defaultNotes),
     customCols: [],
+    exportColumnVisibility: {},
     dirty: false,
   };
 }
@@ -67,6 +68,7 @@ function getBlankBidState(headerOverrides = {}) {
     plf:        clone(defaultPLF),
     notes:      clone(blankNotes),
     customCols: [],
+    exportColumnVisibility: {},
     dirty: false,
   };
 }
@@ -87,6 +89,11 @@ function bidReducer(state, action) {
         controls: { ...state.controls, [action.field]: action.value },
         dirty: true,
       };
+
+    case 'SET_EXPORT_COLUMN_VISIBLE': {
+      const exportColumnVisibility = { ...(state.exportColumnVisibility || {}), [action.colKey]: action.value };
+      return { ...state, exportColumnVisibility, dirty: true };
+    }
 
     // ── LINE ITEM UPDATES ──────────────────
     case 'UPDATE_ITEM': {
@@ -167,6 +174,7 @@ function bidReducer(state, action) {
             equip: 0,
             manualQty: 0,
             custom: customDefaults,
+            hiddenFromExport: false,
           }],
         };
       });
@@ -197,6 +205,7 @@ function bidReducer(state, action) {
           id: uid('r'), desc: '(new item)', unit: 'LS', uc: 0, notes: '',
           qtyMode: 'ls', dur: 0, rateId: '', rateCt: 0,
           labor: 0, equip: 0, manualQty: 0, custom: customDefaults,
+          hiddenFromExport: false,
         }],
       };
       return { ...state, sections: [...state.sections, newSec], dirty: true };
@@ -327,7 +336,6 @@ function bidReducer(state, action) {
         type: action.colType,
         formula: action.colType === 'formula' ? action.formula : '',
       };
-      // Add default value to all existing items
       const sections = state.sections.map(sec => ({
         ...sec,
         items: sec.items.map(item => ({
@@ -335,9 +343,11 @@ function bidReducer(state, action) {
           custom: { ...item.custom, [col.id]: action.colType === 'text' ? '' : 0 },
         })),
       }));
+      const exportColumnVisibility = { ...(state.exportColumnVisibility || {}), [col.id]: true };
       return {
         ...state,
         customCols: [...state.customCols, col],
+        exportColumnVisibility,
         sections,
         dirty: true,
       };
@@ -372,6 +382,7 @@ function bidReducer(state, action) {
         plf:        clone(defaultPLF),
         notes:      clone(defaultNotes),
         customCols: [],
+        exportColumnVisibility: {},
         dirty: false,
       };
 
@@ -419,6 +430,7 @@ export function BidProvider({ children }) {
           plf:        data.plf        || clone(defaultPLF),
           notes:      data.notes      || clone(blankNotes),
           customCols: data.customCols || [],
+          exportColumnVisibility: data.exportColumnVisibility || {},
         },
       });
     } else {
@@ -439,6 +451,7 @@ export function BidProvider({ children }) {
       plf: state.plf,
       notes: state.notes,
       customCols: state.customCols,
+      exportColumnVisibility: state.exportColumnVisibility || {},
     };
     autoSaveTimerRef.current = setTimeout(() => {
       if (saveProjectData(pid, payload)) {
@@ -497,6 +510,7 @@ export function BidProvider({ children }) {
       plf: state.plf,
       notes: state.notes,
       customCols: state.customCols,
+      exportColumnVisibility: state.exportColumnVisibility || {},
     });
     if (success) {
       dispatch({ type: 'MARK_SAVED' });
@@ -524,6 +538,7 @@ export function BidProvider({ children }) {
       plf: blankState.plf,
       notes: blankState.notes,
       customCols: blankState.customCols,
+      exportColumnVisibility: blankState.exportColumnVisibility || {},
     });
   }, [currentProjectId, projects]);
 

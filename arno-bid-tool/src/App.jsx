@@ -93,10 +93,10 @@ export default function App() {
               </div>
             ) : (
               <>
-                <Header />
-                <ControlsBar />
+                <div className="no-print"><Header /></div>
+                <div className="no-print"><ControlsBar /></div>
 
-                <div className="tabs-wrap">
+                <div className="tabs-wrap no-print">
                   <div className="tabs">
                     {CONTENT_TABS.map(tab => (
                       <button
@@ -111,18 +111,44 @@ export default function App() {
                 </div>
 
                 {activeTab === 'bid' && (
-                  <div className="bp">
+                  <div className="bp printable-content" data-print-title={state.header?.title}>
+                    <div className="print-only-title">{state.header?.title || 'Bid'}</div>
                     <BidTable />
                     <ColumnManager />
                   </div>
                 )}
-                {activeTab === 'rates' && <RatesPanel />}
-                {activeTab === 'plf'   && <PLFBreakdown />}
-                {activeTab === 'sum'   && <Summary />}
-                {activeTab === 'notes' && <NotesTab />}
-                {activeTab === 'info'  && <InfoGlossary />}
+                {activeTab === 'rates' && (
+                  <div className="printable-content" data-print-title={state.header?.title}>
+                    <div className="print-only-title">{state.header?.title || 'Rates'}</div>
+                    <RatesPanel />
+                  </div>
+                )}
+                {activeTab === 'plf' && (
+                  <div className="printable-content" data-print-title={state.header?.title}>
+                    <div className="print-only-title">{state.header?.title || 'Breakdown'}</div>
+                    <PLFBreakdown />
+                  </div>
+                )}
+                {activeTab === 'sum' && (
+                  <div className="printable-content" data-print-title={state.header?.title}>
+                    <div className="print-only-title">{state.header?.title || 'Summary'}</div>
+                    <Summary />
+                  </div>
+                )}
+                {activeTab === 'notes' && (
+                  <div className="printable-content" data-print-title={state.header?.title}>
+                    <div className="print-only-title">{state.header?.title || 'Notes'}</div>
+                    <NotesTab />
+                  </div>
+                )}
+                {activeTab === 'info' && (
+                  <div className="printable-content" data-print-title={state.header?.title}>
+                    <div className="print-only-title">{state.header?.title || 'Info'}</div>
+                    <InfoGlossary />
+                  </div>
+                )}
 
-                <button className="prb" onClick={() => window.print()}>🖨 Print / PDF</button>
+                <button className="prb no-print" onClick={() => window.print()}>🖨 Print / PDF</button>
               </>
             )}
           </div>

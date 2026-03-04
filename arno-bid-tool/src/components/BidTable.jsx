@@ -8,13 +8,57 @@ import {
   evaluateFormula,
 } from '../utils/calculations';
 import { currency, num } from '../utils/formatters';
+import { BID_TABLE_COL_KEYS } from '../data/defaults';
+
+/** Column keys in table order: fixed then custom then total, notes */
+function getOrderedColKeys(customCols) {
+  const fixed = BID_TABLE_COL_KEYS.filter(k => k !== 'total' && k !== 'notes');
+  return [...fixed.slice(0, 12), ...customCols.map(c => c.id), 'total', 'notes'];
+}
+
+/** Tiny discrete toggle: include in PDF (hidden in print) */
+function ExportColToggle({ colKey, visible, onToggle }) {
+  return (
+    <span
+      className="export-toggle no-print"
+      role="button"
+      tabIndex={0}
+      onClick={e => { e.preventDefault(); onToggle(); }}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } }}
+      title={visible ? 'Included in PDF (click to exclude)' : 'Excluded from PDF (click to include)'}
+      style={{ marginLeft: 2, fontSize: 9, color: visible ? 'var(--gray-400)' : 'var(--gray-300)', cursor: 'pointer', userSelect: 'none' }}
+      aria-label={visible ? 'Included in PDF' : 'Excluded from PDF'}
+    >
+      {visible ? '▣' : '▢'}
+    </span>
+  );
+}
+
+/** Row-level PDF include toggle (discrete, no-print) */
+function ExportRowToggle({ hiddenFromExport, onToggle }) {
+  return (
+    <span
+      className="export-toggle no-print"
+      role="button"
+      tabIndex={0}
+      onClick={e => { e.preventDefault(); onToggle(); }}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } }}
+      title={hiddenFromExport ? 'Excluded from PDF (click to include)' : 'Included in PDF (click to exclude)'}
+      style={{ marginLeft: 2, fontSize: 9, color: hiddenFromExport ? 'var(--red)' : 'var(--gray-400)', cursor: 'pointer', userSelect: 'none' }}
+      aria-label={hiddenFromExport ? 'Excluded from PDF' : 'Included in PDF'}
+    >
+      {hiddenFromExport ? '▢' : '▣'}
+    </span>
+  );
+}
 
 export default function BidTable() {
   const { state, dispatch } = useBid();
-  const { sections, rates, controls, customCols } = state;
+  const { sections, rates, controls, customCols, exportColumnVisibility } = state;
   const controlsOrLength = controls;
+  const colKeys = getOrderedColKeys(customCols);
+  const colVisible = (key) => exportColumnVisibility?.[key] !== false;
 
-  // Build resource dropdown options
   const laborRates = rates.filter(r => r.cat === 'labor');
   const equipRates = rates.filter(r => r.cat === 'equip');
 
@@ -22,27 +66,60 @@ export default function BidTable() {
 
   let rowNum = 0;
 
+  const toggleCol = (key) => dispatch({ type: 'SET_EXPORT_COLUMN_VISIBLE', colKey: key, value: !colVisible(key) });
+  const toggleRow = (itemId, current) => dispatch({ type: 'UPDATE_ITEM', itemId, field: 'hiddenFromExport', value: !current });
+
   return (
+    <>
     <table>
       <thead>
         <tr>
-          <th style={{ width: 20 }}></th>
-          <th style={{ width: 24 }}>#</th>
-          <th style={{ minWidth: 140 }}>Description</th>
-          <th className="c" style={{ width: 42 }}>Qty</th>
-          <th className="c" style={{ width: 30 }}>U</th>
-          <th className="r mc" style={{ width: 68 }}>Unit Cost</th>
-          <th className="r mc" style={{ width: 76 }}>Material $</th>
-          <th className="c dc" style={{ width: 42 }}>Days</th>
-          <th className="dc" style={{ width: 100 }}>Resource</th>
-          <th className="c dc" style={{ width: 32 }}>#</th>
-          <th className="r lc" style={{ width: 66 }}>Labor $</th>
-          <th className="r ec" style={{ width: 66 }}>Equip $</th>
+          <th data-col="del" className={!colVisible('del') ? 'hide-in-export' : ''} style={{ width: 20 }}>
+            <ExportColToggle colKey="del" visible={colVisible('del')} onToggle={() => toggleCol('del')} />
+          </th>
+          <th data-col="num" className={!colVisible('num') ? 'hide-in-export' : ''} style={{ width: 24 }}>#</th>
+          <th data-col="desc" className={!colVisible('desc') ? 'hide-in-export' : ''} style={{ minWidth: 140 }}>
+            Description
+            <ExportColToggle colKey="desc" visible={colVisible('desc')} onToggle={() => toggleCol('desc')} />
+          </th>
+          <th data-col="qty" className={`c ${!colVisible('qty') ? 'hide-in-export' : ''}`} style={{ width: 42 }}>
+            Qty<ExportColToggle colKey="qty" visible={colVisible('qty')} onToggle={() => toggleCol('qty')} />
+          </th>
+          <th data-col="unit" className={`c ${!colVisible('unit') ? 'hide-in-export' : ''}`} style={{ width: 30 }}>
+            U<ExportColToggle colKey="unit" visible={colVisible('unit')} onToggle={() => toggleCol('unit')} />
+          </th>
+          <th data-col="uc" className={`r mc ${!colVisible('uc') ? 'hide-in-export' : ''}`} style={{ width: 68 }}>
+            Unit Cost<ExportColToggle colKey="uc" visible={colVisible('uc')} onToggle={() => toggleCol('uc')} />
+          </th>
+          <th data-col="material" className={`r mc ${!colVisible('material') ? 'hide-in-export' : ''}`} style={{ width: 76 }}>
+            Material $<ExportColToggle colKey="material" visible={colVisible('material')} onToggle={() => toggleCol('material')} />
+          </th>
+          <th data-col="days" className={`c dc ${!colVisible('days') ? 'hide-in-export' : ''}`} style={{ width: 42 }}>
+            Days<ExportColToggle colKey="days" visible={colVisible('days')} onToggle={() => toggleCol('days')} />
+          </th>
+          <th data-col="resource" className={`dc ${!colVisible('resource') ? 'hide-in-export' : ''}`} style={{ width: 100 }}>
+            Resource<ExportColToggle colKey="resource" visible={colVisible('resource')} onToggle={() => toggleCol('resource')} />
+          </th>
+          <th data-col="count" className={`c dc ${!colVisible('count') ? 'hide-in-export' : ''}`} style={{ width: 32 }}>
+            #<ExportColToggle colKey="count" visible={colVisible('count')} onToggle={() => toggleCol('count')} />
+          </th>
+          <th data-col="labor" className={`r lc ${!colVisible('labor') ? 'hide-in-export' : ''}`} style={{ width: 66 }}>
+            Labor $<ExportColToggle colKey="labor" visible={colVisible('labor')} onToggle={() => toggleCol('labor')} />
+          </th>
+          <th data-col="equip" className={`r ec ${!colVisible('equip') ? 'hide-in-export' : ''}`} style={{ width: 66 }}>
+            Equip $<ExportColToggle colKey="equip" visible={colVisible('equip')} onToggle={() => toggleCol('equip')} />
+          </th>
           {customCols.map(col => (
-            <th key={col.id} className="r" style={{ width: 70 }}>{col.name}</th>
+            <th key={col.id} data-col={col.id} className={`r ${!colVisible(col.id) ? 'hide-in-export' : ''}`} style={{ width: 70 }}>
+              {col.name}<ExportColToggle colKey={col.id} visible={colVisible(col.id)} onToggle={() => toggleCol(col.id)} />
+            </th>
           ))}
-          <th className="r" style={{ width: 78 }}>Total</th>
-          <th style={{ minWidth: 120 }}>Notes</th>
+          <th data-col="total" className={`r ${!colVisible('total') ? 'hide-in-export' : ''}`} style={{ width: 78 }}>
+            Total<ExportColToggle colKey="total" visible={colVisible('total')} onToggle={() => toggleCol('total')} />
+          </th>
+          <th data-col="notes" className={!colVisible('notes') ? 'hide-in-export' : ''} style={{ minWidth: 120 }}>
+            Notes<ExportColToggle colKey="notes" visible={colVisible('notes')} onToggle={() => toggleCol('notes')} />
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -94,19 +171,21 @@ export default function BidTable() {
                 const autoEq = isAutoEquip(item, rates);
                 const rateObj = item.rateId ? getRate(rates, item.rateId) : null;
 
+                const hiddenFromExport = item.hiddenFromExport === true;
                 return (
-                  <tr key={item.id}>
-                    <td className="c">
+                  <tr key={item.id} className={hiddenFromExport ? 'hide-in-export' : ''}>
+                    <td data-col="del" className={`c ${!colVisible('del') ? 'hide-in-export' : ''}`}>
                       <button className="db" onClick={() => dispatch({ type: 'DELETE_ROW', itemId: item.id })}>✕</button>
+                      <ExportRowToggle hiddenFromExport={hiddenFromExport} onToggle={() => toggleRow(item.id, hiddenFromExport)} />
                     </td>
-                    <td className="c n">{rowNum}</td>
-                    <td>
+                    <td data-col="num" className={`c n ${!colVisible('num') ? 'hide-in-export' : ''}`}>{rowNum}</td>
+                    <td data-col="desc" className={!colVisible('desc') ? 'hide-in-export' : ''}>
                       <input className="et" value={item.desc}
                         onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'desc', value: e.target.value })} />
                     </td>
 
                     {/* Qty — click to cycle mode */}
-                    <td className="c n" style={{ cursor: 'pointer' }}
+                    <td data-col="qty" className={`c n ${!colVisible('qty') ? 'hide-in-export' : ''}`} style={{ cursor: 'pointer' }}
                       onClick={() => dispatch({ type: 'CYCLE_QTY_MODE', itemId: item.id })}
                       title="Click to cycle: Primary (from project basis) → LS (1) → Manual (EA)">
                       {item.qtyMode === 'manual' ? (
@@ -116,7 +195,7 @@ export default function BidTable() {
                       ) : item.qtyMode === 'lf' ? num(q) : '1'}
                     </td>
 
-                    <td className="c">
+                    <td data-col="unit" className={`c ${!colVisible('unit') ? 'hide-in-export' : ''}`}>
                       <select
                         className="rs"
                         value={item.unit || 'LS'}
@@ -132,20 +211,20 @@ export default function BidTable() {
                     </td>
 
                     {/* Unit Cost */}
-                    <td className="r">
+                    <td data-col="uc" className={`r ${!colVisible('uc') ? 'hide-in-export' : ''}`}>
                       <input className="ei" type="number" step="0.01" value={item.uc}
                         onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'uc', value: parseFloat(e.target.value) || 0 })} />
                     </td>
-                    <td className="r n">{currency(mat)}</td>
+                    <td data-col="material" className={`r n ${!colVisible('material') ? 'hide-in-export' : ''}`}>{currency(mat)}</td>
 
                     {/* Duration */}
-                    <td className="c">
+                    <td data-col="days" className={`c ${!colVisible('days') ? 'hide-in-export' : ''}`}>
                       <input className="ei ei-s qi" type="number" step="0.1" value={item.dur || 0}
                         onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'dur', value: parseFloat(e.target.value) || 0 })} />
                     </td>
 
                     {/* Resource dropdown */}
-                    <td>
+                    <td data-col="resource" className={!colVisible('resource') ? 'hide-in-export' : ''}>
                       <select className="rs" value={item.rateId || ''}
                         onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'rateId', value: e.target.value })}>
                         <option value="">— Manual —</option>
@@ -167,13 +246,13 @@ export default function BidTable() {
                     </td>
 
                     {/* Count */}
-                    <td className="c">
+                    <td data-col="count" className={`c ${!colVisible('count') ? 'hide-in-export' : ''}`}>
                       <input className="ei ei-s qi" type="number" step="1" value={item.rateCt || 0}
                         onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'rateCt', value: parseFloat(e.target.value) || 0 })} />
                     </td>
 
                     {/* Labor $ */}
-                    <td className="r">
+                    <td data-col="labor" className={`r ${!colVisible('labor') ? 'hide-in-export' : ''}`}>
                       {autoLab ? (
                         <span className="n" style={{ color: 'var(--green)' }}
                           title={`Auto: ${rateObj?.name} × ${item.dur}d × ${item.rateCt}`}>
@@ -186,7 +265,7 @@ export default function BidTable() {
                     </td>
 
                     {/* Equip $ */}
-                    <td className="r">
+                    <td data-col="equip" className={`r ${!colVisible('equip') ? 'hide-in-export' : ''}`}>
                       {autoEq ? (
                         <span className="n" style={{ color: 'var(--amber)' }}
                           title={`Auto: ${rateObj?.name} × ${item.dur}d × ${item.rateCt}`}>
@@ -202,27 +281,28 @@ export default function BidTable() {
                     {/* Custom columns */}
                     {customCols.map(col => {
                       const val = item.custom?.[col.id] ?? (col.type === 'text' ? '' : 0);
+                      const hide = !colVisible(col.id) ? ' hide-in-export' : '';
                       if (col.type === 'formula') {
-                        return <td key={col.id} className="r n" style={{ color: 'var(--blue)' }}>{currency(evaluateFormula(col.formula, item, controlsOrLength, rates, customCols))}</td>;
+                        return <td key={col.id} data-col={col.id} className={`r n${hide}`} style={{ color: 'var(--blue)' }}>{currency(evaluateFormula(col.formula, item, controlsOrLength, rates, customCols))}</td>;
                       }
                       if (col.type === 'currency' || col.type === 'number') {
                         return (
-                          <td key={col.id} className="r">
+                          <td key={col.id} data-col={col.id} className={`r${hide}`}>
                             <input className="ei" type="number" step="0.01" value={val}
                               onChange={e => dispatch({ type: 'UPDATE_ITEM_CUSTOM', itemId: item.id, colId: col.id, value: parseFloat(e.target.value) || 0 })} />
                           </td>
                         );
                       }
                       return (
-                        <td key={col.id}>
+                        <td key={col.id} data-col={col.id} className={hide}>
                           <input className="et" value={val}
                             onChange={e => dispatch({ type: 'UPDATE_ITEM_CUSTOM', itemId: item.id, colId: col.id, value: e.target.value })} />
                         </td>
                       );
                     })}
 
-                    <td className="r n" style={{ fontWeight: 400 }}>{currency(tot)}</td>
-                    <td>
+                    <td data-col="total" className={`r n ${!colVisible('total') ? 'hide-in-export' : ''}`} style={{ fontWeight: 400 }}>{currency(tot)}</td>
+                    <td data-col="notes" className={!colVisible('notes') ? 'hide-in-export' : ''}>
                       <input className="et" value={item.notes}
                         style={{ color: 'var(--gray-400)', fontSize: 9 }}
                         onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'notes', value: e.target.value })} />
@@ -239,33 +319,9 @@ export default function BidTable() {
                   </button>
                 </td>
               </tr>
-
-              {/* Subtotal row */}
-              <tr className="sr">
-                <td></td><td></td><td>SUBTOTAL</td><td></td><td></td><td></td>
-                <td className="r n">{currency(sm)}</td>
-                <td></td><td></td><td></td>
-                <td className="r n">{currency(sl)}</td>
-                <td className="r n">{currency(se)}</td>
-                {customCols.map(col => {
-                  if (col.type === 'formula' || col.type === 'currency') {
-                    const colTotal = sec.items.reduce((sum, item) =>
-                      sum + (col.type === 'formula'
-                        ? evaluateFormula(col.formula, item, controlsOrLength, rates, customCols)
-                        : (parseFloat(item.custom?.[col.id]) || 0)), 0);
-                    return <td key={col.id} className="r n">{currency(colTotal)}</td>;
-                  }
-                  return <td key={col.id}></td>;
-                })}
-                <td className="r n" style={{ fontSize: 11 }}>{currency(st)}</td>
-                <td></td>
-              </tr>
             </React.Fragment>
           );
         })}
-
-        {/* Grand total row */}
-        <GrandTotalRow controls={controlsOrLength} rates={rates} sections={sections} customCols={customCols} />
 
         {/* Add section button */}
         <tr>
@@ -277,26 +333,30 @@ export default function BidTable() {
         </tr>
       </tbody>
     </table>
+
+    {/* Totals in their own section (always all items; not aligned to table columns) */}
+    <BidTotalsSection sections={sections} controls={controlsOrLength} rates={rates} customCols={customCols} />
+  </>
   );
 }
 
-function GrandTotalRow({ controls, rates, sections, customCols }) {
-  const tm = grandMaterial(sections, controls);
-  const tl = grandLabor(sections, rates);
-  const te = grandEquip(sections, rates);
+function BidTotalsSection({ sections, controls, rates, customCols }) {
   const gt = grandTotal(sections, controls, rates);
-
   return (
-    <tr style={{ background: 'var(--navy)' }}>
-      <td style={{ background: 'var(--navy)' }}></td>
-      <td colSpan={5} style={{ color: '#fff', fontWeight: 700, fontSize: 12, textAlign: 'right', padding: '8px 6px' }}>TOTAL</td>
-      <td className="r" style={{ color: '#93c5fd', fontWeight: 400, fontFamily: 'var(--font-mono)', fontSize: 11 }}>{currency(tm)}</td>
-      <td colSpan={3} style={{ background: 'var(--navy)' }}></td>
-      <td className="r" style={{ color: '#bbf7d0', fontWeight: 400, fontFamily: 'var(--font-mono)', fontSize: 11 }}>{currency(tl)}</td>
-      <td className="r" style={{ color: '#fde68a', fontWeight: 400, fontFamily: 'var(--font-mono)', fontSize: 11 }}>{currency(te)}</td>
-      {customCols.map(c => <td key={c.id} style={{ background: 'var(--navy)' }}></td>)}
-      <td className="r" style={{ color: '#fff', fontWeight: 400, fontFamily: 'var(--font-mono)', fontSize: 13 }}>{currency(gt)}</td>
-      <td style={{ background: 'var(--navy)' }}></td>
-    </tr>
+    <div className="bid-totals-section">
+      {sections.map(sec => {
+        const st = sectionTotal(sec, controls, rates);
+        return (
+          <div key={sec.id} className="bid-totals-row">
+            <span className="bid-totals-label">{sec.title}</span>
+            <span className="bid-totals-value">{currency(st)}</span>
+          </div>
+        );
+      })}
+      <div className="bid-totals-row bid-totals-grand">
+        <span className="bid-totals-label">Total</span>
+        <span className="bid-totals-value">{currency(gt)}</span>
+      </div>
+    </div>
   );
 }
