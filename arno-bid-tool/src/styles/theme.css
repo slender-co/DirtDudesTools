@@ -4,6 +4,11 @@
  * ═══════════════════════════════════════════════════════════════════ */
 
 :root {
+  /* Typography — Brunson only, no other fonts */
+  --font-app: 'Brunson', sans-serif;
+  --font-sans: var(--font-app);
+  --font-mono: var(--font-app);
+
   /* Brand / primary */
   --brand: #334155;
   --brand-light: #475569;

@@ -82,7 +82,7 @@ export default function Summary() {
                   <td className="r n">{currency(sectionLabor(sec, rates))}</td>
                   <td className="r n">{currency(sectionEquip(sec, rates))}</td>
                   <td className="r n">{sd > 0 ? `${sd.toFixed(1)}d` : '—'}</td>
-                  <td className="r n" style={{ fontWeight: 600 }}>{currency(st)}</td>
+                  <td className="r n" style={{ fontWeight: 400 }}>{currency(st)}</td>
                   <td className="r n">{gt ? `${(st/gt*100).toFixed(1)}%` : '0%'}</td>
                 </tr>
               );
@@ -93,7 +93,7 @@ export default function Summary() {
               <td className="r n">{currency(tl)}</td>
               <td className="r n">{currency(te)}</td>
               <td className="r n">{td.toFixed(1)}d</td>
-              <td className="r n" style={{ fontSize: 12 }}>{currency(gt)}</td>
+              <td className="r n" style={{ fontSize: 12, fontWeight: 400 }}>{currency(gt)}</td>
               <td className="r n">100%</td>
             </tr>
           </tbody>

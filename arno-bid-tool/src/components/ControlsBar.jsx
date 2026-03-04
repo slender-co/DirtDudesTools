@@ -66,7 +66,7 @@ export default function ControlsBar() {
           <div style={{ fontSize: 8, fontWeight: 700, color: 'var(--gray-500)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Base Bid Total
           </div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--navy)', fontFamily: "'JetBrains Mono', monospace" }}>
+          <div style={{ fontSize: 22, fontWeight: 400, color: 'var(--navy)', fontFamily: 'var(--font-mono)' }}>
             {currency(gt)}
           </div>
         </div>

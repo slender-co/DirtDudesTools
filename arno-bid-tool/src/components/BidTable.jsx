@@ -211,7 +211,7 @@ export default function BidTable() {
                       );
                     })}
 
-                    <td className="r n" style={{ fontWeight: 700 }}>{currency(tot)}</td>
+                    <td className="r n" style={{ fontWeight: 400 }}>{currency(tot)}</td>
                     <td>
                       <input className="et" value={item.notes}
                         style={{ color: 'var(--gray-400)', fontSize: 9 }}
@@ -281,12 +281,12 @@ function GrandTotalRow({ wallLength, rates, sections, customCols }) {
     <tr style={{ background: 'var(--navy)' }}>
       <td style={{ background: 'var(--navy)' }}></td>
       <td colSpan={5} style={{ color: '#fff', fontWeight: 700, fontSize: 12, textAlign: 'right', padding: '8px 6px' }}>TOTAL</td>
-      <td className="r" style={{ color: '#93c5fd', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>{currency(tm)}</td>
+      <td className="r" style={{ color: '#93c5fd', fontWeight: 400, fontFamily: 'var(--font-mono)', fontSize: 11 }}>{currency(tm)}</td>
       <td colSpan={3} style={{ background: 'var(--navy)' }}></td>
-      <td className="r" style={{ color: '#bbf7d0', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>{currency(tl)}</td>
-      <td className="r" style={{ color: '#fde68a', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>{currency(te)}</td>
+      <td className="r" style={{ color: '#bbf7d0', fontWeight: 400, fontFamily: 'var(--font-mono)', fontSize: 11 }}>{currency(tl)}</td>
+      <td className="r" style={{ color: '#fde68a', fontWeight: 400, fontFamily: 'var(--font-mono)', fontSize: 11 }}>{currency(te)}</td>
       {customCols.map(c => <td key={c.id} style={{ background: 'var(--navy)' }}></td>)}
-      <td className="r" style={{ color: '#fff', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", fontSize: 13 }}>{currency(gt)}</td>
+      <td className="r" style={{ color: '#fff', fontWeight: 400, fontFamily: 'var(--font-mono)', fontSize: 13 }}>{currency(gt)}</td>
       <td style={{ background: 'var(--navy)' }}></td>
     </tr>
   );

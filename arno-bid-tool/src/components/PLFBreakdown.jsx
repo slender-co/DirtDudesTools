@@ -88,11 +88,11 @@ export default function PLFBreakdown() {
                 })}
               </React.Fragment>
             ))}
-            <tr style={{ background: 'var(--navy)', color: '#fff', fontWeight: 700 }}>
-              <td>TOTAL</td>
-              <td className="c">{totalPct.toFixed(2)}%</td>
-              <td className="r n">{currency(romPLF)}</td>
-              <td className="r n">{currency(romPLF * wallLength)}</td>
+            <tr style={{ background: 'var(--navy)', color: '#fff' }}>
+              <td style={{ fontWeight: 700 }}>TOTAL</td>
+              <td className="c" style={{ fontWeight: 400 }}>{totalPct.toFixed(2)}%</td>
+              <td className="r n" style={{ fontWeight: 400 }}>{currency(romPLF)}</td>
+              <td className="r n" style={{ fontWeight: 400 }}>{currency(romPLF * wallLength)}</td>
             </tr>
           </tbody>
         </table>
