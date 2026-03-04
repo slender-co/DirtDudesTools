@@ -35,6 +35,18 @@ import {
 // Deep-clone helper
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
 
+/** Migrate legacy controls (wallLength/wallHeight/romPLF/romPSF) to primaryQty/primaryUnit/romTarget */
+function migrateControls(c) {
+  if (!c) return clone(defaultControls);
+  if (c.primaryQty !== undefined && c.primaryUnit !== undefined) return { ...clone(defaultControls), ...c };
+  return {
+    primaryQty:   c.wallLength ?? c.primaryQty ?? defaultControls.primaryQty,
+    primaryUnit: c.primaryUnit ?? 'LF',
+    secondaryQty: c.wallHeight ?? c.secondaryQty ?? defaultControls.secondaryQty,
+    romTarget:   c.romPLF ?? c.romTarget ?? defaultControls.romTarget,
+  };
+}
+
 /** Full template (all demo sections) — used only as fallback */
 function getDefaultBidState(overrides = {}) {
   return {
@@ -86,6 +98,18 @@ function bidReducer(state, action) {
         ...sec,
         items: sec.items.map(item =>
           item.id === action.itemId ? { ...item, [action.field]: action.value } : item
+        ),
+      }));
+      return { ...state, sections, dirty: true };
+    }
+
+    case 'UPDATE_ITEM_UNIT': {
+      const u = action.value;
+      const qtyMode = u === 'LS' ? 'ls' : u === 'EA' ? 'manual' : 'lf';
+      const sections = state.sections.map(sec => ({
+        ...sec,
+        items: sec.items.map(item =>
+          item.id === action.itemId ? { ...item, unit: u, qtyMode } : item
         ),
       }));
       return { ...state, sections, dirty: true };
@@ -387,11 +411,13 @@ export function BidProvider({ children }) {
     }
     const data = getProjectData(currentProjectId);
     if (data && data.sections && data.sections.length > 0) {
+      const rawControls = data.controls || clone(defaultControls);
+      const controls = migrateControls(rawControls);
       dispatch({
         type: 'LOAD_STATE',
         state: {
           header:     data.header     || clone(defaultHeader),
-          controls:   data.controls   || clone(defaultControls),
+          controls,
           sections:   data.sections   || clone(blankSections),
           rates:      data.rates      || clone(defaultRates),
           plf:        data.plf        || clone(defaultPLF),

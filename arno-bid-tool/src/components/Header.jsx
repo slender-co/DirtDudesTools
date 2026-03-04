@@ -1,18 +1,22 @@
 import React from 'react';
 import { useBid } from '../context/BidContext';
-import { grandTotal, actualPLF, actualPSF } from '../utils/calculations';
+import { grandTotal, getBidMetrics } from '../utils/calculations';
 import { num } from '../utils/formatters';
 
 export default function Header() {
   const { state, dispatch } = useBid();
   const { header, controls, sections, rates } = state;
-  const { wallLength, wallHeight, romPLF } = controls;
 
-  const gt  = grandTotal(sections, wallLength, rates);
-  const plf = actualPLF(sections, wallLength, rates);
-  const psf = actualPSF(sections, wallLength, wallHeight, rates);
-  const plfD = plf - romPLF;
-  const tag = plfD > 1 ? `(+$${plfD.toFixed(0)} over)` : plfD < -1 ? `(-$${Math.abs(plfD).toFixed(0)} under)` : '(on target)';
+  const gt = grandTotal(sections, controls, rates);
+  const metrics = getBidMetrics(sections, controls, rates);
+  const { perUnit, unitLabel, basisQty, basis } = metrics;
+  const romTarget = controls.romTarget ?? 0;
+  const delta = perUnit != null && romTarget > 0 ? perUnit - romTarget : 0;
+  const tag = delta > 1 ? `(+$${delta.toFixed(0)} over)` : delta < -1 ? `(-$${Math.abs(delta).toFixed(0)} under)` : '(on target)';
+
+  const basisLabel = basis.isLumpSum
+    ? 'Lump sum'
+    : `${num(basisQty)} ${unitLabel}`;
 
   return (
     <div className="header">
@@ -22,14 +26,24 @@ export default function Header() {
         onChange={e => dispatch({ type: 'SET_HEADER', payload: { title: e.target.value } })}
       />
       <div className="hdr-auto">
-        {wallHeight}'-0" CIP Concrete | {num(wallLength)} LF | <b>${plf.toFixed(0)} PLF</b> / ${psf.toFixed(0)} PSF {tag}
+        {basisLabel}
+        {perUnit != null && (
+          <> · <b>${perUnit.toFixed(0)} / {unitLabel}</b>{romTarget > 0 && <> {tag}</>}</>
+        )}
+        {!basis.isLumpSum && basis.secondaryQty > 0 && basis.primaryUnit === 'LF' && (
+          <> · {basis.secondaryQty}′ height (area: {num(basis.area)} SF)</>
+        )}
       </div>
-      <input
-        className="hdr-edit scope"
-        value={header.scope}
-        onChange={e => dispatch({ type: 'SET_HEADER', payload: { scope: e.target.value } })}
-        style={{ marginTop: 4 }}
-      />
+      <div className="scope-section">
+        <label className="scope-label">Scope of work</label>
+        <textarea
+          className="scope-input"
+          value={header.scope}
+          onChange={e => dispatch({ type: 'SET_HEADER', payload: { scope: e.target.value } })}
+          placeholder="Describe what this bid covers — e.g. dirt, demo, concrete, footings, rebar, underground, utilities…"
+          rows={3}
+        />
+      </div>
     </div>
   );
 }

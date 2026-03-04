@@ -12,7 +12,7 @@ import { currency, num } from '../utils/formatters';
 export default function BidTable() {
   const { state, dispatch } = useBid();
   const { sections, rates, controls, customCols } = state;
-  const { wallLength } = controls;
+  const controlsOrLength = controls;
 
   // Build resource dropdown options
   const laborRates = rates.filter(r => r.cat === 'labor');
@@ -47,10 +47,10 @@ export default function BidTable() {
       </thead>
       <tbody>
         {sections.map(sec => {
-          const sm = sectionMaterial(sec, wallLength);
+          const sm = sectionMaterial(sec, controlsOrLength);
           const sl = sectionLabor(sec, rates);
           const se = sectionEquip(sec, rates);
-          const st = sectionTotal(sec, wallLength, rates);
+          const st = sectionTotal(sec, controlsOrLength, rates);
 
           return (
             <React.Fragment key={sec.id}>
@@ -85,11 +85,11 @@ export default function BidTable() {
               {/* Line items */}
               {sec.items.map(item => {
                 rowNum++;
-                const q = getQty(item, wallLength);
-                const mat = getMaterial(item, wallLength);
+                const q = getQty(item, controlsOrLength);
+                const mat = getMaterial(item, controlsOrLength);
                 const lab = getLabor(item, rates);
                 const eq = getEquip(item, rates);
-                const tot = getLineTotal(item, wallLength, rates);
+                const tot = getLineTotal(item, controlsOrLength, rates);
                 const autoLab = isAutoLabor(item, rates);
                 const autoEq = isAutoEquip(item, rates);
                 const rateObj = item.rateId ? getRate(rates, item.rateId) : null;
@@ -108,7 +108,7 @@ export default function BidTable() {
                     {/* Qty — click to cycle mode */}
                     <td className="c n" style={{ cursor: 'pointer' }}
                       onClick={() => dispatch({ type: 'CYCLE_QTY_MODE', itemId: item.id })}
-                      title="Click to cycle: LF → LS → Manual">
+                      title="Click to cycle: Primary (from project basis) → LS (1) → Manual (EA)">
                       {item.qtyMode === 'manual' ? (
                         <input className="ei ei-s" type="number" value={item.manualQty || 0}
                           onClick={e => e.stopPropagation()}
@@ -116,9 +116,19 @@ export default function BidTable() {
                       ) : item.qtyMode === 'lf' ? num(q) : '1'}
                     </td>
 
-                    <td className="c" style={{ cursor: 'pointer', fontSize: 9, color: 'var(--gray-400)' }}
-                      onClick={() => dispatch({ type: 'CYCLE_QTY_MODE', itemId: item.id })}>
-                      {item.unit || 'LS'}
+                    <td className="c">
+                      <select
+                        className="rs"
+                        value={item.unit || 'LS'}
+                        onChange={e => dispatch({ type: 'UPDATE_ITEM_UNIT', itemId: item.id, value: e.target.value })}
+                        style={{ fontSize: 10, padding: '2px 4px', minWidth: 42 }}
+                      >
+                        <option value="LF">LF</option>
+                        <option value="SF">SF</option>
+                        <option value="CY">CY</option>
+                        <option value="LS">LS</option>
+                        <option value="EA">EA</option>
+                      </select>
                     </td>
 
                     {/* Unit Cost */}
@@ -193,7 +203,7 @@ export default function BidTable() {
                     {customCols.map(col => {
                       const val = item.custom?.[col.id] ?? (col.type === 'text' ? '' : 0);
                       if (col.type === 'formula') {
-                        return <td key={col.id} className="r n" style={{ color: 'var(--blue)' }}>{currency(evaluateFormula(col.formula, item, wallLength, rates, customCols))}</td>;
+                        return <td key={col.id} className="r n" style={{ color: 'var(--blue)' }}>{currency(evaluateFormula(col.formula, item, controlsOrLength, rates, customCols))}</td>;
                       }
                       if (col.type === 'currency' || col.type === 'number') {
                         return (
@@ -241,7 +251,7 @@ export default function BidTable() {
                   if (col.type === 'formula' || col.type === 'currency') {
                     const colTotal = sec.items.reduce((sum, item) =>
                       sum + (col.type === 'formula'
-                        ? evaluateFormula(col.formula, item, wallLength, rates, customCols)
+                        ? evaluateFormula(col.formula, item, controlsOrLength, rates, customCols)
                         : (parseFloat(item.custom?.[col.id]) || 0)), 0);
                     return <td key={col.id} className="r n">{currency(colTotal)}</td>;
                   }
@@ -255,7 +265,7 @@ export default function BidTable() {
         })}
 
         {/* Grand total row */}
-        <GrandTotalRow wallLength={wallLength} rates={rates} sections={sections} customCols={customCols} />
+        <GrandTotalRow controls={controlsOrLength} rates={rates} sections={sections} customCols={customCols} />
 
         {/* Add section button */}
         <tr>
@@ -270,11 +280,11 @@ export default function BidTable() {
   );
 }
 
-function GrandTotalRow({ wallLength, rates, sections, customCols }) {
-  const tm = grandMaterial(sections, wallLength);
+function GrandTotalRow({ controls, rates, sections, customCols }) {
+  const tm = grandMaterial(sections, controls);
   const tl = grandLabor(sections, rates);
   const te = grandEquip(sections, rates);
-  const gt = grandTotal(sections, wallLength, rates);
+  const gt = grandTotal(sections, controls, rates);
 
   return (
     <tr style={{ background: 'var(--navy)' }}>

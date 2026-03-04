@@ -219,16 +219,18 @@ export const defaultNotes = [
   },
 ];
 
-// ─── DEFAULT CONTROLS ──────────────────────────────────────────────
+// ─── DEFAULT CONTROLS (universal: LF, SF, CY, or LS) ────────────────
+// primaryUnit: 'LF' | 'SF' | 'CY' | 'LS' — drives how line-item quantities and "per unit" are calculated
+// secondaryQty: optional (e.g. height in FT when primary is length, to get area for PSF)
 export const defaultControls = {
-  wallLength: 76.8489,
-  wallHeight: 6,
-  romPLF: 400,
-  romPSF: 50,
+  primaryQty: 100,
+  primaryUnit: 'LF',       // LF = linear ft, SF = sq ft, CY = cubic yd, LS = lump sum
+  secondaryQty: 0,         // e.g. height (FT) when primary is length → area = primaryQty * secondaryQty
+  romTarget: 400,          // target $ per primary unit (or total when LS)
 };
 
 // ─── DEFAULT HEADER ────────────────────────────────────────────────
 export const defaultHeader = {
-  title: '374 ARNO WAY — RETAINING WALL BID',
-  scope: 'WALL ONLY SCOPE — Excludes house pads, foundation, pool, utilities, flatwork, landscape',
+  title: 'Untitled Bid',
+  scope: '',               // Scope of work — describe what this bid covers (dirt, demo, concrete, etc.)
 };

@@ -1,26 +1,48 @@
 /**
  * CALCULATION UTILITIES
  * =====================
- * Pure functions — no side effects, no DOM access.
- * Every calculation the bid tool performs lives here.
- *
- * COST MODEL:
- *   Line Total = Material$ + Labor$ + Equipment$
- *   Material$  = Qty × Unit Cost
- *   Labor$     = (rate × duration × count) if resource assigned, else manual
- *   Equipment$ = same logic as labor, for equip-category resources
+ * Universal basis: LF, SF, CY, or LS. Line items use qtyMode (primary / ls / manual)
+ * and unit (LF, SF, CY, LS, EA) to resolve quantity from project controls.
  */
 
-// ─── LINE-ITEM CALCULATIONS ───────────────────────────────────────
+// ─── BASIS HELPERS ────────────────────────────────────────────────
 
-/** Resolve quantity for a line item based on its qtyMode */
-export function getQty(item, wallLength) {
-  switch (item.qtyMode) {
-    case 'lf':     return wallLength;
-    case 'ls':     return 1;
-    case 'manual': return item.manualQty || 0;
-    default:       return 0;
-  }
+/** Normalize controls: support legacy (wallLength/wallHeight) and new (primaryQty/primaryUnit) */
+function getBasis(controls) {
+  const c = controls || {};
+  const primaryQty = c.primaryQty ?? c.wallLength ?? 0;
+  const primaryUnit = c.primaryUnit ?? 'LF';
+  const secondaryQty = c.secondaryQty ?? c.wallHeight ?? 0;
+  const length = primaryUnit === 'LF' ? primaryQty : 0;
+  const area = primaryUnit === 'SF' ? primaryQty : (primaryUnit === 'LF' && secondaryQty ? primaryQty * secondaryQty : primaryUnit === 'SF' ? primaryQty : 0);
+  const areaFromLengthHeight = primaryUnit === 'LF' && secondaryQty ? primaryQty * secondaryQty : 0;
+  return {
+    primaryQty,
+    primaryUnit,
+    secondaryQty,
+    length,
+    area: primaryUnit === 'SF' ? primaryQty : areaFromLengthHeight,
+    volume: primaryUnit === 'CY' ? primaryQty : 0,
+    isLumpSum: primaryUnit === 'LS',
+  };
+}
+
+/** Resolve quantity for a line item. controls can be legacy (number = wallLength) or full controls object. */
+export function getQty(item, controlsOrWallLength) {
+  const controls = typeof controlsOrWallLength === 'object' ? controlsOrWallLength : { wallLength: controlsOrWallLength, primaryQty: controlsOrWallLength, primaryUnit: 'LF' };
+  const basis = getBasis(controls);
+  const mode = item.qtyMode || 'lf';
+
+  if (mode === 'ls') return 1;
+  if (mode === 'manual') return item.manualQty ?? 0;
+
+  // 'lf' or 'primary': use project basis by line-item unit
+  const unit = (item.unit || 'LS').toUpperCase();
+  if (unit === 'LF') return basis.length || 0;
+  if (unit === 'SF') return basis.area || 0;
+  if (unit === 'CY') return basis.volume || 0;
+  if (unit === 'LS' || unit === 'EA') return 1;
+  return basis.length || 0;
 }
 
 /** Look up a rate card by id */
@@ -29,8 +51,8 @@ export function getRate(rates, rateId) {
 }
 
 /** Material cost = Qty × Unit Cost */
-export function getMaterial(item, wallLength) {
-  return getQty(item, wallLength) * (item.uc || 0);
+export function getMaterial(item, controlsOrWallLength) {
+  return getQty(item, controlsOrWallLength) * (item.uc || 0);
 }
 
 /** Labor cost — auto-calculated from rate card, or manual entry */
@@ -56,8 +78,8 @@ export function getEquip(item, rates) {
 }
 
 /** Line total = Material + Labor + Equipment */
-export function getLineTotal(item, wallLength, rates) {
-  return getMaterial(item, wallLength) + getLabor(item, rates) + getEquip(item, rates);
+export function getLineTotal(item, controlsOrWallLength, rates) {
+  return getMaterial(item, controlsOrWallLength) + getLabor(item, rates) + getEquip(item, rates);
 }
 
 /** Check if a line item has auto-calculated labor (resource assigned + labor cat) */
@@ -99,8 +121,8 @@ export function sectionDuration(section) {
 
 // ─── GRAND TOTALS ─────────────────────────────────────────────────
 
-export function grandMaterial(sections, wallLength) {
-  return sections.reduce((sum, sec) => sum + sectionMaterial(sec, wallLength), 0);
+export function grandMaterial(sections, controlsOrWallLength) {
+  return sections.reduce((sum, sec) => sum + sectionMaterial(sec, controlsOrWallLength), 0);
 }
 
 export function grandLabor(sections, rates) {
@@ -111,48 +133,80 @@ export function grandEquip(sections, rates) {
   return sections.reduce((sum, sec) => sum + sectionEquip(sec, rates), 0);
 }
 
-export function grandTotal(sections, wallLength, rates) {
-  return sections.reduce((sum, sec) => sum + sectionTotal(sec, wallLength, rates), 0);
+export function grandTotal(sections, controlsOrWallLength, rates) {
+  return sections.reduce((sum, sec) => sum + sectionTotal(sec, controlsOrWallLength, rates), 0);
 }
 
 export function totalDuration(sections) {
   return sections.reduce((sum, sec) => sum + sectionDuration(sec), 0);
 }
 
-// ─── DERIVED METRICS ──────────────────────────────────────────────
+// ─── DERIVED METRICS (unit-agnostic) ───────────────────────────────
 
-export function actualPLF(sections, wallLength, rates) {
-  const gt = grandTotal(sections, wallLength, rates);
-  return wallLength > 0 ? gt / wallLength : 0;
+/** Returns { total, perUnit, unitLabel, basisQty } for header/summary. When LS, perUnit is null. */
+export function getBidMetrics(sections, controls, rates) {
+  const basis = getBasis(controls);
+  const total = grandTotal(sections, controls, rates);
+  let perUnit = null;
+  let basisQty = 0;
+  if (!basis.isLumpSum && basis.primaryUnit === 'LF' && basis.length > 0) {
+    perUnit = total / basis.length;
+    basisQty = basis.length;
+  } else if (!basis.isLumpSum && basis.primaryUnit === 'SF' && basis.area > 0) {
+    perUnit = total / basis.area;
+    basisQty = basis.area;
+  } else if (!basis.isLumpSum && basis.primaryUnit === 'CY' && basis.volume > 0) {
+    perUnit = total / basis.volume;
+    basisQty = basis.volume;
+  }
+  return { total, perUnit, unitLabel: basis.primaryUnit, basisQty, basis };
 }
 
-export function actualPSF(sections, wallLength, wallHeight, rates) {
-  const gt = grandTotal(sections, wallLength, rates);
-  const sf = wallLength * wallHeight;
-  return sf > 0 ? gt / sf : 0;
+/** Legacy: actual $/LF when basis is linear. */
+export function actualPLF(sections, controlsOrWallLength, rates) {
+  const controls = typeof controlsOrWallLength === 'number' ? { wallLength: controlsOrWallLength, primaryQty: controlsOrWallLength, primaryUnit: 'LF' } : controlsOrWallLength;
+  const { perUnit } = getBidMetrics(sections, controls, rates);
+  return perUnit ?? 0;
 }
 
-export function wallFootingPLF(sections, wallLength, rates) {
+/** Legacy: actual $/SF when basis is area. */
+export function actualPSF(sections, controlsOrWallLength, wallHeight, rates) {
+  const c = typeof controlsOrWallLength === 'object' ? controlsOrWallLength : { wallLength: controlsOrWallLength, wallHeight, primaryQty: controlsOrWallLength, primaryUnit: 'LF', secondaryQty: wallHeight };
+  const basis = getBasis(c);
+  const total = grandTotal(sections, c, rates);
+  const area = basis.area || (basis.length * (c.wallHeight ?? c.secondaryQty ?? 0));
+  return area > 0 ? total / area : 0;
+}
+
+/** Cost per primary unit for a subset of sections. */
+export function wallFootingPLF(sections, controlsOrWallLength, rates) {
+  const controls = typeof controlsOrWallLength === 'number' ? { primaryQty: controlsOrWallLength, primaryUnit: 'LF' } : controlsOrWallLength;
   const wallSec = sections.find(s => s.id === 'wall') || { items: [] };
   const ftgSec  = sections.find(s => s.id === 'ftg')  || { items: [] };
-  const cost = sectionTotal(wallSec, wallLength, rates) + sectionTotal(ftgSec, wallLength, rates);
-  return wallLength > 0 ? cost / wallLength : 0;
+  const cost = sectionTotal(wallSec, controls, rates) + sectionTotal(ftgSec, controls, rates);
+  const basis = getBasis(controls);
+  const qty = basis.primaryUnit === 'LF' ? basis.length : basis.area || basis.volume || 1;
+  return qty > 0 ? cost / qty : 0;
 }
 
 // ─── FORMULA EVALUATION ───────────────────────────────────────────
 // For custom columns with type "formula"
 
-export function evaluateFormula(formula, item, wallLength, rates, customCols) {
+export function evaluateFormula(formula, item, controlsOrWallLength, rates, customCols) {
   try {
+    const controls = typeof controlsOrWallLength === 'number' ? { primaryQty: controlsOrWallLength, primaryUnit: 'LF' } : controlsOrWallLength;
+    const basis = getBasis(controls);
     const context = {
-      qty:   getQty(item, wallLength),
+      qty:   getQty(item, controls),
       uc:    item.uc || 0,
-      mat:   getMaterial(item, wallLength),
+      mat:   getMaterial(item, controls),
       lab:   getLabor(item, rates),
       eq:    getEquip(item, rates),
-      total: getLineTotal(item, wallLength, rates),
+      total: getLineTotal(item, controls, rates),
       dur:   item.dur || 0,
-      lf:    wallLength,
+      lf:    basis.length,
+      sf:    basis.area,
+      cy:    basis.volume,
     };
 
     // Add custom column values to context

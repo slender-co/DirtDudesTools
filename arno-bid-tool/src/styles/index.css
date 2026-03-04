@@ -280,6 +280,11 @@ select, option {
 .hdr-edit.scope { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 .hdr-auto { font-size: 12px; color: var(--text-muted); font-weight: 400; margin-top: 4px; padding: 2px 6px; }
 .hdr-auto b { color: var(--text); }
+.scope-section { margin-top: 12px; }
+.scope-label { display: block; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.scope-input { width: 100%; min-height: 64px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 12px; font-family: var(--font-sans); color: var(--text); resize: vertical; }
+.scope-input:focus { outline: none; border-color: var(--primary); }
+.scope-input::placeholder { color: var(--text-subtle); }
 
 /* ─── CONTROLS BAR ──────────────────────────────────────────────── */
 .controls { background: var(--surface-alt); padding: 12px 0; display: flex; gap: 24px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 0; }

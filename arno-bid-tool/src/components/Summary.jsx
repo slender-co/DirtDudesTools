@@ -3,47 +3,51 @@ import { useBid } from '../context/BidContext';
 import {
   grandTotal, grandMaterial, grandLabor, grandEquip,
   sectionTotal, sectionMaterial, sectionLabor, sectionEquip, sectionDuration,
-  totalDuration, actualPLF, actualPSF, wallFootingPLF,
+  totalDuration, getBidMetrics, wallFootingPLF,
 } from '../utils/calculations';
 import { currency, num } from '../utils/formatters';
 
 export default function Summary() {
   const { state } = useBid();
   const { sections, rates, controls } = state;
-  const { wallLength, wallHeight, romPLF, romPSF } = controls;
+  const romTarget = controls.romTarget ?? 0;
+  const primaryUnit = controls.primaryUnit ?? 'LF';
+  const basis = getBidMetrics(sections, controls, rates);
 
-  const gt = grandTotal(sections, wallLength, rates);
-  const tm = grandMaterial(sections, wallLength);
+  const gt = grandTotal(sections, controls, rates);
+  const tm = grandMaterial(sections, controls);
   const tl = grandLabor(sections, rates);
   const te = grandEquip(sections, rates);
   const td = totalDuration(sections);
-  const rom = wallLength * romPLF;
-  const aPlf = actualPLF(sections, wallLength, rates);
-  const aPsf = actualPSF(sections, wallLength, wallHeight, rates);
-  const wPlf = wallFootingPLF(sections, wallLength, rates);
+  const { perUnit, unitLabel, basisQty } = basis;
+  const rom = !basis.basis.isLumpSum && basisQty > 0 ? basisQty * romTarget : 0;
+  const wPerUnit = wallFootingPLF(sections, controls, rates);
 
   return (
     <div className="bp">
-      {/* Summary cards */}
       <div className="sc">
-        <Card label="Bid Total" value={currency(gt)} sub={`${sections.length} sections`} className="hi" />
+        <Card label="Bid total" value={currency(gt)} sub={`${sections.length} sections`} className="hi" />
         <Card label="Material" value={currency(tm)} sub={gt ? `${(tm/gt*100).toFixed(1)}%` : '0%'} className="mc2" />
         <Card label="Labor" value={currency(tl)} sub={gt ? `${(tl/gt*100).toFixed(1)}%` : '0%'} className="lc2" />
         <Card label="Equipment" value={currency(te)} sub={gt ? `${(te/gt*100).toFixed(1)}%` : '0%'} className="ec2" />
-        <Card label="Actual PLF (Full Bid)" value={currency(aPlf)} sub={`vs $${romPLF} ROM target`} />
-        <Card label="Actual PSF (Full Bid)" value={currency(aPsf)} sub={`vs $${romPSF} ROM target`} />
-        <Card label="Wall+Footing PLF" value={currency(wPlf)} sub="Sec 3+4 only — construction core" />
-        <Card label="Est. Duration" value={`${td.toFixed(1)}d`} sub="Sum of section peaks" />
-        <Card label="ROM Baseline" value={currency(rom)} sub={`${num(wallLength)} LF × $${romPLF}`} />
-        <Card label="Variance vs ROM" value={currency(gt - rom)}
-          sub={`${gt > rom ? 'Over' : 'Under'} by ${rom ? Math.abs((gt - rom) / rom * 100).toFixed(1) : '0'}%`}
-          className={gt > rom ? 'wa' : ''} />
+        {perUnit != null && (
+          <>
+            <Card label={`Actual $ / ${unitLabel}`} value={currency(perUnit)} sub={romTarget ? `vs $${romTarget} target` : ''} />
+            <Card label="Target baseline" value={currency(rom)} sub={basisQty ? `${num(basisQty)} ${unitLabel} × $${romTarget}` : ''} />
+            <Card label="Variance vs target" value={currency(gt - rom)}
+              sub={rom ? `${gt > rom ? 'Over' : 'Under'} by ${Math.abs((gt - rom) / rom * 100).toFixed(1)}%` : ''}
+              className={gt > rom ? 'wa' : ''} />
+          </>
+        )}
+        {primaryUnit === 'LF' && wPerUnit > 0 && (
+          <Card label="Wall+footing $/LF" value={currency(wPerUnit)} sub="Sections named wall/ftg only" />
+        )}
+        <Card label="Est. duration" value={`${td.toFixed(1)}d`} sub="Sum of section peaks" />
       </div>
 
-      {/* Split bar */}
       <div style={{ padding: '0 16px' }}>
         <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4 }}>
-          Material / Labor / Equipment Split
+          Material / Labor / Equipment split
         </div>
       </div>
       <div className="splb">
@@ -60,7 +64,6 @@ export default function Summary() {
         </>}
       </div>
 
-      {/* Section breakdown table */}
       <div style={{ padding: '0 16px 16px' }}>
         <table>
           <thead>
@@ -72,13 +75,13 @@ export default function Summary() {
           </thead>
           <tbody>
             {sections.map((sec, i) => {
-              const st = sectionTotal(sec, wallLength, rates);
+              const st = sectionTotal(sec, controls, rates);
               const sd = sectionDuration(sec);
               return (
                 <tr key={sec.id} style={{ background: i % 2 === 0 ? '#fff' : 'var(--gray-50)' }}>
                   <td className="c n">{i + 1}</td>
                   <td>{sec.title}</td>
-                  <td className="r n">{currency(sectionMaterial(sec, wallLength))}</td>
+                  <td className="r n">{currency(sectionMaterial(sec, controls))}</td>
                   <td className="r n">{currency(sectionLabor(sec, rates))}</td>
                   <td className="r n">{currency(sectionEquip(sec, rates))}</td>
                   <td className="r n">{sd > 0 ? `${sd.toFixed(1)}d` : '—'}</td>
