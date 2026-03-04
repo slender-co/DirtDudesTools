@@ -221,12 +221,14 @@ export const defaultNotes = [
 
 // ─── DEFAULT CONTROLS (universal: LF, SF, CY, or LS) ────────────────
 // primaryUnit: 'LF' | 'SF' | 'CY' | 'LS' — drives how line-item quantities and "per unit" are calculated
-// secondaryQty: optional (e.g. height in FT when primary is length, to get area for PSF)
+// useWallMode: when true, show height and use length×height for area (wall-style bids)
+// secondaryQty: height in FT — only used when useWallMode && primaryUnit === 'LF'
 export const defaultControls = {
   primaryQty: 100,
-  primaryUnit: 'LF',       // LF = linear ft, SF = sq ft, CY = cubic yd, LS = lump sum
-  secondaryQty: 0,         // e.g. height (FT) when primary is length → area = primaryQty * secondaryQty
-  romTarget: 400,          // target $ per primary unit (or total when LS)
+  primaryUnit: 'LF',
+  secondaryQty: 0,
+  useWallMode: false,      // turn on for wall bids: enables height and area = length × height
+  romTarget: 400,
 };
 
 // ─── DEFAULT HEADER ────────────────────────────────────────────────

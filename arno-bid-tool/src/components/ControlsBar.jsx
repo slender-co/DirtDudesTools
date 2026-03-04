@@ -16,6 +16,7 @@ export default function ControlsBar() {
   const primaryQty = controls.primaryQty ?? controls.wallLength ?? 0;
   const primaryUnit = controls.primaryUnit ?? 'LF';
   const secondaryQty = controls.secondaryQty ?? controls.wallHeight ?? 0;
+  const useWallMode = controls.useWallMode ?? false;
   const romTarget = controls.romTarget ?? 0;
 
   const gt = grandTotal(sections, controls, rates);
@@ -52,9 +53,18 @@ export default function ControlsBar() {
           ))}
         </select>
       </div>
-      {(primaryUnit === 'LF' || primaryUnit === 'SF') && (
+      <div className="cg" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 20 }}>
+        <input
+          type="checkbox"
+          id="use-wall-mode"
+          checked={useWallMode}
+          onChange={e => setCtrl('useWallMode', e.target.checked)}
+        />
+        <label htmlFor="use-wall-mode" style={{ fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>Wall project (use height)</label>
+      </div>
+      {useWallMode && primaryUnit === 'LF' && (
         <div className="cg">
-          <label>{primaryUnit === 'LF' ? 'Height (FT)' : 'Secondary'}</label>
+          <label>Height (FT)</label>
           <input
             type="number"
             value={secondaryQty}

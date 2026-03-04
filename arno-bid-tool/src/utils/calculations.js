@@ -7,19 +7,21 @@
 
 // ─── BASIS HELPERS ────────────────────────────────────────────────
 
-/** Normalize controls: support legacy (wallLength/wallHeight) and new (primaryQty/primaryUnit) */
+/** Normalize controls: support legacy (wallLength/wallHeight) and new (primaryQty/primaryUnit).
+ *  Height (secondaryQty) is only used for area when useWallMode is true (wall-style bids). */
 function getBasis(controls) {
   const c = controls || {};
   const primaryQty = c.primaryQty ?? c.wallLength ?? 0;
   const primaryUnit = c.primaryUnit ?? 'LF';
   const secondaryQty = c.secondaryQty ?? c.wallHeight ?? 0;
+  const useWallMode = c.useWallMode ?? false;
   const length = primaryUnit === 'LF' ? primaryQty : 0;
-  const area = primaryUnit === 'SF' ? primaryQty : (primaryUnit === 'LF' && secondaryQty ? primaryQty * secondaryQty : primaryUnit === 'SF' ? primaryQty : 0);
-  const areaFromLengthHeight = primaryUnit === 'LF' && secondaryQty ? primaryQty * secondaryQty : 0;
+  const areaFromLengthHeight = primaryUnit === 'LF' && useWallMode && secondaryQty ? primaryQty * secondaryQty : 0;
   return {
     primaryQty,
     primaryUnit,
     secondaryQty,
+    useWallMode,
     length,
     area: primaryUnit === 'SF' ? primaryQty : areaFromLengthHeight,
     volume: primaryUnit === 'CY' ? primaryQty : 0,

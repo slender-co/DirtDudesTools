@@ -35,16 +35,12 @@ import {
 // Deep-clone helper
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
 
-/** Migrate legacy controls (wallLength/wallHeight/romPLF/romPSF) to primaryQty/primaryUnit/romTarget */
+/** Migrate legacy controls to current shape. Old projects with height get useWallMode true. */
 function migrateControls(c) {
   if (!c) return clone(defaultControls);
-  if (c.primaryQty !== undefined && c.primaryUnit !== undefined) return { ...clone(defaultControls), ...c };
-  return {
-    primaryQty:   c.wallLength ?? c.primaryQty ?? defaultControls.primaryQty,
-    primaryUnit: c.primaryUnit ?? 'LF',
-    secondaryQty: c.wallHeight ?? c.secondaryQty ?? defaultControls.secondaryQty,
-    romTarget:   c.romPLF ?? c.romTarget ?? defaultControls.romTarget,
-  };
+  const base = { ...clone(defaultControls), ...c };
+  if (c.useWallMode === undefined && (c.wallHeight > 0 || c.secondaryQty > 0)) base.useWallMode = true;
+  return base;
 }
 
 /** Full template (all demo sections) — used only as fallback */

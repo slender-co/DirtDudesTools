@@ -39,7 +39,7 @@ export default function Summary() {
               className={gt > rom ? 'wa' : ''} />
           </>
         )}
-        {primaryUnit === 'LF' && wPerUnit > 0 && (
+        {(controls.useWallMode && primaryUnit === 'LF' && wPerUnit > 0) && (
           <Card label="Wall+footing $/LF" value={currency(wPerUnit)} sub="Sections named wall/ftg only" />
         )}
         <Card label="Est. duration" value={`${td.toFixed(1)}d`} sub="Sum of section peaks" />

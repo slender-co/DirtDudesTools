@@ -30,7 +30,7 @@ export default function Header() {
         {perUnit != null && (
           <> · <b>${perUnit.toFixed(0)} / {unitLabel}</b>{romTarget > 0 && <> {tag}</>}</>
         )}
-        {!basis.isLumpSum && basis.secondaryQty > 0 && basis.primaryUnit === 'LF' && (
+        {!basis.isLumpSum && basis.useWallMode && basis.secondaryQty > 0 && basis.primaryUnit === 'LF' && (
           <> · {basis.secondaryQty}′ height (area: {num(basis.area)} SF)</>
         )}
       </div>

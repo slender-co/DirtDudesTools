@@ -2,9 +2,9 @@ import React from 'react';
 
 const TABS = [
   { id: 'projects', label: 'Projects',       icon: 'folder' },
-  { id: 'bid',      label: 'Breakdown',      icon: 'doc' },
+  { id: 'bid',      label: 'Line items',      icon: 'doc' },
   { id: 'rates',    label: 'Rates',          icon: 'dollar' },
-  { id: 'plf',     label: 'PLF Breakdown',  icon: 'chart' },
+  { id: 'plf',     label: 'Breakdown',      icon: 'chart' },
   { id: 'sum',     label: 'Summary',        icon: 'list' },
   { id: 'notes',    label: 'Notes',         icon: 'note' },
   { id: 'info',    label: 'Info / Glossary', icon: 'info' },

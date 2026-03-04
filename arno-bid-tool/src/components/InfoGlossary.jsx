@@ -53,10 +53,10 @@ export default function InfoGlossary() {
         <D term="Auto-calc Formula">Rate × Days × Count = Labor $ or Equip $. Shows purple "auto" tag.</D>
       </Section>
 
-      <Section title="PLF Breakdown Tab">
-        <D term="PLF">Price per Linear Foot. Industry-standard metric for retaining wall pricing.</D>
-        <D term="Wall Stem">Vertical portion of the wall above the footing. Includes concrete, rebar, formwork, and labor.</D>
-        <D term="Footing">Horizontal concrete base the wall sits on. Transfers wall loads into soil.</D>
+      <Section title="Breakdown Tab">
+        <D term="Cost allocation">Percent of target $ per unit assigned to each cost component. Turn on &quot;Wall project (use height)&quot; for wall stem vs footing split.</D>
+        <D term="Wall project">Checkbox in controls. When on, height (FT) is used and area = length × height; Breakdown shows Wall Stem / Footing groups.</D>
+        <D term="PLF">Price per Linear Foot. Common for walls and linear work.</D>
         <D term="Balance Indicator">Percentages must total 100%. Green = balanced. Red = needs adjustment.</D>
       </Section>
 

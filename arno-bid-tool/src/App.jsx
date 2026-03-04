@@ -20,9 +20,9 @@ export const useToast = () => useContext(ToastContext);
 
 /** Tabs shown in main content (excludes Projects — that’s the sidebar page) */
 const CONTENT_TABS = [
-  { id: 'bid',   label: 'Breakdown' },
+  { id: 'bid',   label: 'Line items' },
   { id: 'rates', label: 'Rates' },
-  { id: 'plf',   label: 'PLF Breakdown' },
+  { id: 'plf',   label: 'Breakdown' },
   { id: 'sum',   label: 'Summary' },
   { id: 'notes', label: 'Notes' },
   { id: 'info',  label: 'Info / Glossary' },
