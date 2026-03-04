@@ -4,6 +4,8 @@ import { grandTotal, actualPLF, actualPSF } from './utils/calculations';
 import { currency } from './utils/formatters';
 import { exportHTML, getSavedTime, hasSavedData } from './utils/storage';
 import Header from './components/Header';
+import Sidebar from './components/Sidebar';
+import TopBar from './components/TopBar';
 import ControlsBar from './components/ControlsBar';
 import BidTable from './components/BidTable';
 import RatesPanel from './components/RatesPanel';
@@ -76,67 +78,72 @@ export default function App() {
 
   return (
     <ToastContext.Provider value={showToast}>
-      <div className="container">
-        <Header />
+      <div className="app-layout">
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <main className="main">
+          <TopBar
+            onSave={handleSave}
+            onLoad={handleLoad}
+            onExport={handleExport}
+            onResetClick={() => setShowResetModal(true)}
+            statusText={statusText}
+            statusOk={!state.dirty && !!savedTime}
+          />
+          <div className="main-content">
+            <Header />
+            <ControlsBar />
 
-        {/* Save bar */}
-        <div className="save-bar">
-          <button className="sb p" onClick={handleSave}>💾 Save</button>
-          <button className="sb s" onClick={handleLoad}>📂 Load</button>
-          <button className="sb s" onClick={handleExport}>⬇ Export</button>
-          <button className="sb d" onClick={() => setShowResetModal(true)}>↩ Reset</button>
-          <span className={`ss ${!state.dirty && savedTime ? 'ok' : ''}`}>{statusText}</span>
-        </div>
-
-        <ControlsBar />
-
-        {/* Tab bar */}
-        <div className="tabs">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              className={`tab ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab content */}
-        {activeTab === 'bid' && (
-          <div className="bp">
-            <BidTable />
-            <ColumnManager />
-          </div>
-        )}
-        {activeTab === 'rates' && <RatesPanel />}
-        {activeTab === 'plf'   && <PLFBreakdown />}
-        {activeTab === 'sum'   && <Summary />}
-        {activeTab === 'notes' && <NotesTab />}
-        {activeTab === 'info'  && <InfoGlossary />}
-
-        <button className="prb" onClick={() => window.print()}>🖨 Print / PDF</button>
-
-        {/* Toast */}
-        {toast && (
-          <div className={`toast show ${toast.type}`}>{toast.message}</div>
-        )}
-
-        {/* Reset modal */}
-        {showResetModal && (
-          <div className="mo show" onClick={() => setShowResetModal(false)}>
-            <div className="md" onClick={e => e.stopPropagation()}>
-              <h3>Reset to Defaults?</h3>
-              <p>Erases all edits, rates, custom columns, and saved data.</p>
-              <div className="mb">
-                <button className="cl2" onClick={() => setShowResetModal(false)}>Cancel</button>
-                <button className="cf" onClick={handleReset}>Reset</button>
+            {/* Tab bar — segmented style */}
+            <div className="tabs-wrap">
+              <div className="tabs">
+                {TABS.map(tab => (
+                  <button
+                    key={tab.id}
+                    className={`tab ${activeTab === tab.id ? 'active' : ''}`}
+                    onClick={() => setActiveTab(tab.id)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* Tab content */}
+            {activeTab === 'bid' && (
+              <div className="bp">
+                <BidTable />
+                <ColumnManager />
+              </div>
+            )}
+            {activeTab === 'rates' && <RatesPanel />}
+            {activeTab === 'plf'   && <PLFBreakdown />}
+            {activeTab === 'sum'   && <Summary />}
+            {activeTab === 'notes' && <NotesTab />}
+            {activeTab === 'info'  && <InfoGlossary />}
+
+            <button className="prb" onClick={() => window.print()}>🖨 Print / PDF</button>
           </div>
-        )}
+        </main>
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className={`toast show ${toast.type}`}>{toast.message}</div>
+      )}
+
+      {/* Reset modal */}
+      {showResetModal && (
+        <div className="mo show" onClick={() => setShowResetModal(false)}>
+          <div className="md" onClick={e => e.stopPropagation()}>
+            <h3>Reset to Defaults?</h3>
+            <p>Erases all edits, rates, custom columns, and saved data.</p>
+            <div className="mb">
+              <button className="cl2" onClick={() => setShowResetModal(false)}>Cancel</button>
+              <button className="cf" onClick={handleReset}>Reset</button>
+            </div>
+          </div>
+        </div>
+      )}
     </ToastContext.Provider>
   );
 }

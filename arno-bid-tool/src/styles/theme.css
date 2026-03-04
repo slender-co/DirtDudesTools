@@ -1,0 +1,105 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * BID TOOL THEME — Single source for look & feel.
+ * Change these variables to refine the UI; import this file first.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Brand / primary */
+  --brand: #334155;
+  --brand-light: #475569;
+  --primary: #3b82f6;
+  --primary-bg: #eff6ff;
+  --primary-hover: #2563eb;
+
+  /* Sidebar */
+  --sidebar-bg: #f1f5f9;
+  --sidebar-text: #475569;
+  --sidebar-text-active: #1e40af;
+  --sidebar-active-bg: #dbeafe;
+  --sidebar-width: 240px;
+
+  /* Main surface */
+  --surface: #ffffff;
+  --surface-alt: #f8fafc;
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+
+  /* Text */
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+
+  /* Accents (stats / cards) */
+  --accent-blue: #3b82f6;
+  --accent-blue-bg: #dbeafe;
+  --accent-orange: #ea580c;
+  --accent-orange-bg: #ffedd5;
+  --accent-green: #16a34a;
+  --accent-green-bg: #dcfce7;
+  --accent-purple: #7c3aed;
+  --accent-purple-bg: #ede9fe;
+
+  /* Semantic */
+  --success: #16a34a;
+  --success-bg: #dcfce7;
+  --warning: #d97706;
+  --warning-bg: #fef3c7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+
+  /* Top bar */
+  --topbar-bg: #ffffff;
+  --search-bg: #f1f5f9;
+  --search-placeholder: #94a3b8;
+
+  /* Tabs (segmented style) */
+  --tab-active-bg: #334155;
+  --tab-active-text: #ffffff;
+  --tab-inactive-bg: #ffffff;
+  --tab-inactive-text: #475569;
+  --tab-border: #e2e8f0;
+
+  /* Cards / panels */
+  --card-bg: #f8fafc;
+  --card-border: #e2e8f0;
+  --radius: 8px;
+  --radius-sm: 6px;
+
+  /* Table */
+  --table-header-bg: #334155;
+  --table-header-text: #ffffff;
+  --table-row-hover: #f8fafc;
+
+  /* Buttons */
+  --btn-primary-bg: #334155;
+  --btn-primary-text: #ffffff;
+  --btn-secondary-border: #e2e8f0;
+  --btn-secondary-text: #475569;
+
+  /* Legacy aliases (used by existing components — table, header, etc.) */
+  --navy: #334155;
+  --navy-mid: #475569;
+  --navy-light: #64748b;
+  --blue: #3b82f6;
+  --blue-light: #bfdbfe;
+  --blue-pale: #eff6ff;
+  --amber: #d97706;
+  --amber-light: #fef3c7;
+  --amber-pale: #fffbeb;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --green-light: #bbf7d0;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --purple: #7c3aed;
+  --purple-bg: #ede9fe;
+  --purple-light: #c4b5fd;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-700: #334155;
+  --gray-900: #0f172a;
+}
