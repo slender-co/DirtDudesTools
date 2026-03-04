@@ -78,20 +78,23 @@ export default function ControlsBar() {
       <div style={{ display: 'flex', gap: 10, marginLeft: 'auto', flexWrap: 'wrap', alignItems: 'center' }}>
         {!isLumpSum && (
           <div className="metric-badge" style={{ background: 'var(--blue-pale)', borderColor: 'var(--blue-light)' }}>
-            <div className="metric-label" style={{ color: 'var(--blue)' }}>Actual $ / {unitLabel}</div>
-            <div className="metric-value" style={{ color: deltaColor }}>{perUnit != null ? currency(perUnit) : '—'}</div>
-            <div className="metric-rom">
-              Target: $<input
-                type="number"
-                value={romTarget}
-                step={1}
-                onChange={e => setCtrl('romTarget', parseFloat(e.target.value) || 0)}
-                className="rom-input"
-                style={{ width: 48 }}
-              />
+            <div className="metric-badge-left">
+              <div className="metric-label" style={{ color: 'var(--blue)' }}>Actual $ / {unitLabel}</div>
+              <div className="metric-value" style={{ color: deltaColor }}>{perUnit != null ? currency(perUnit) : '—'}</div>
             </div>
-            <div className="metric-delta" style={{ color: Math.abs(delta) < 1 ? 'var(--green)' : delta > 0 ? 'var(--red)' : 'var(--green)' }}>
-              {romTarget > 0 && (Math.abs(delta) < 1 ? 'On target' : delta > 0 ? `+$${delta.toFixed(0)} over` : `-$${Math.abs(delta).toFixed(0)} under`)}
+            <div className="metric-badge-right">
+              <div className="metric-rom">
+                Target: $<input
+                  type="number"
+                  value={romTarget}
+                  step={1}
+                  onChange={e => setCtrl('romTarget', parseFloat(e.target.value) || 0)}
+                  className="rom-input"
+                />
+              </div>
+              <div className="metric-delta" style={{ color: Math.abs(delta) < 1 ? 'var(--green)' : delta > 0 ? 'var(--red)' : 'var(--green)' }}>
+                {romTarget > 0 && (Math.abs(delta) < 1 ? 'On target' : delta > 0 ? `+$${delta.toFixed(0)} over` : `-$${Math.abs(delta).toFixed(0)} under`)}
+              </div>
             </div>
           </div>
         )}

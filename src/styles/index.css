@@ -380,19 +380,21 @@ select, option {
 /* ─── CONTROLS BAR ──────────────────────────────────────────────── */
 .controls { background: var(--surface-alt); padding: 14px 24px; display: flex; gap: 24px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 0; }
 .controls > .cg:first-of-type { margin-left: 0; }
-.controls .metric-badge { flex-shrink: 0; }
 .controls > div:last-of-type { margin-left: auto; flex-shrink: 0; }
 .cg label { font-size: 9px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px; }
 .cg input { width: 100px; padding: 5px 7px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 13px; font-weight: 400; font-family: var(--font-mono); background: #fff; }
 .cg input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(46,117,182,0.2); }
 
-/* Metric badges in controls bar */
-.metric-badge { text-align: center; padding: 6px 12px; border-radius: var(--radius); border: 1px solid; }
-.metric-label { font-size: 7px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-.metric-value { font-size: 16px; font-weight: 400; font-family: var(--font-mono); }
-.metric-rom { font-size: 8px; color: var(--gray-400); }
-.metric-delta { font-size: 8px; font-weight: 400; margin-top: 1px; }
-.rom-input { border: 1px solid var(--gray-300); border-radius: 2px; font-size: 8px; font-family: var(--font-mono); text-align: center; padding: 1px; background: var(--gray-50); color: var(--gray-500); font-weight: 400; }
+/* Metric badges in controls bar — larger, readable sizing */
+/* Metric badge: horizontal layout — Actual on left, Target + delta on right */
+.metric-badge { display: flex; align-items: center; gap: 14px; padding: 8px 14px; border-radius: var(--radius); border: 1px solid; flex-shrink: 0; }
+.metric-badge-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding-right: 14px; border-right: 1px solid var(--gray-200); }
+.metric-badge-right { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.metric-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.metric-value { font-size: 1.15rem; font-weight: 400; font-family: var(--font-mono); }
+.metric-rom { font-size: 0.75rem; color: var(--gray-400); display: flex; align-items: center; gap: 6px; }
+.metric-delta { font-size: 0.75rem; font-weight: 400; }
+.rom-input { border: 1px solid var(--gray-300); border-radius: 4px; font-size: 0.9rem; font-family: var(--font-mono); text-align: center; padding: 3px 6px; width: 52px; background: var(--gray-50); color: var(--text); font-weight: 400; }
 
 /* ─── TABS ──────────────────────────────────────────────────────── */
 .tabs { display: flex; background: var(--navy); overflow-x: auto; }
@@ -404,6 +406,8 @@ select, option {
 .bp { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); overflow-x: auto; padding: 0 16px 16px; }
 
 /* ─── TABLE ─────────────────────────────────────────────────────── */
+/* Hide columns toggled off in Column Manager (and in print) */
+th.hide-in-export, td.hide-in-export { display: none !important; }
 .bp table { min-width: 1200px; }
 table { width: 100%; border-collapse: collapse; }
 th { background: var(--navy); color: #fff; padding: 8px 10px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; text-align: left; position: sticky; top: 0; z-index: 2; white-space: nowrap; }
@@ -482,11 +486,11 @@ input[type="number"]::-webkit-inner-spin-button {
 .prb:hover { background: var(--navy-light); }
 
 /* ─── SUMMARY CARDS (stats style) ───────────────────────────────── */
-.sc { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; padding: 16px; }
-.cd { padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--card-border); background: var(--card-bg); }
-.cd .cl { font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-.cd .cv { font-size: 17px; font-weight: 400; font-family: var(--font-mono); color: var(--text); margin-top: 3px; }
-.cd .cs { font-size: 10px; color: var(--text-subtle); margin-top: 2px; }
+.sc { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; padding: 18px; }
+.cd { padding: 16px 18px; border-radius: var(--radius); border: 1px solid var(--card-border); background: var(--card-bg); }
+.cd .cl { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.cd .cv { font-size: 1.15rem; font-weight: 400; font-family: var(--font-mono); color: var(--text); margin-top: 4px; }
+.cd .cs { font-size: 0.8rem; color: var(--text-subtle); margin-top: 4px; }
 .cd.hi { background: var(--tab-active-bg); border-color: var(--tab-active-bg); }
 .cd.hi .cl { color: rgba(255,255,255,0.7); }
 .cd.hi .cv { color: #fff; }
@@ -538,9 +542,13 @@ input[type="number"]::-webkit-inner-spin-button {
 /* ─── COLUMN MANAGER ────────────────────────────────────────────── */
 .cm { padding: 12px 16px; background: var(--gray-50); border-top: 1px solid var(--gray-200); }
 .cm h4 { font-size: 11px; font-weight: 700; color: var(--navy); margin-bottom: 8px; text-transform: uppercase; }
+.cm-hint { font-size: 11px; color: var(--gray-500); margin: -4px 0 10px 0; }
 .cmg { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
 .cc { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; border: 1px solid var(--gray-300); background: #fff; }
+button.cc { cursor: pointer; font: inherit; text-align: left; }
 .cc.co { background: var(--blue-pale); border-color: var(--blue-light); color: var(--navy); }
+.cc.co.cc-off { opacity: 0.65; background: var(--gray-200) !important; border-color: var(--gray-300) !important; color: var(--gray-500) !important; }
+.cc.co.cc-on { cursor: pointer; }
 .cc.cu { background: var(--amber-pale); border-color: var(--amber-light); color: var(--amber); padding-right: 4px; }
 .cc .cd2 { background: none; border: 1px solid transparent; cursor: pointer; color: var(--gray-400); font-size: 13px; font-weight: 700; padding: 0 4px; line-height: 1; border-radius: 3px; transition: all 0.15s; }
 .cc .cd2:hover { color: #fff; background: var(--red); border-color: var(--red); }
@@ -780,10 +788,13 @@ input[type="number"]::-webkit-inner-spin-button {
 .main-theme.theme-dark .cd .cs { color: #64748b; }
 .main-theme.theme-dark .cm { background: #0f172a; border-color: #334155; }
 .main-theme.theme-dark .cm h4 { color: #f1f5f9; }
+.main-theme.theme-dark .cm-hint { color: #94a3b8; }
 .main-theme.theme-dark .cc { border-color: #334155; }
+.main-theme.theme-dark .cc.co.cc-off { background: #1e293b !important; border-color: #475569 !important; color: #64748b !important; }
 .main-theme.theme-dark .prb { background: #334155; }
 .main-theme.theme-dark .prb:hover { background: #475569; }
 .main-theme.theme-dark .metric-badge { background: #1e293b !important; border-color: #475569 !important; }
+.main-theme.theme-dark .metric-badge-left { border-right-color: #334155 !important; }
 .main-theme.theme-dark .metric-label { color: #93c5fd !important; }
 .main-theme.theme-dark .metric-value { color: #e2e8f0 !important; }
 .main-theme.theme-dark .metric-rom { color: #94a3b8 !important; }

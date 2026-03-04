@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
 import { useBid } from '../context/BidContext';
 import { useToast } from '../App';
+import { BID_TABLE_COL_KEYS } from '../data/defaults';
+
+/** Display labels for standard table columns (same order as BID_TABLE_COL_KEYS) */
+const COL_LABELS = {
+  del: 'Del', num: '#', desc: 'Desc', qty: 'Qty', unit: 'Unit', uc: 'Unit Cost',
+  material: 'Material $', days: 'Days', resource: 'Resource', count: '#', labor: 'Labor $', equip: 'Equip $',
+  total: 'Total', notes: 'Notes',
+};
 
 export default function ColumnManager() {
   const { state, dispatch } = useBid();
   const showToast = useToast();
-  const { customCols } = state;
+  const { customCols, exportColumnVisibility } = state;
 
   const [name, setName] = useState('');
   const [type, setType] = useState('text');
   const [formula, setFormula] = useState('');
+
+  const colVisible = (key) => exportColumnVisibility?.[key] !== false;
+  const toggleCol = (key) => dispatch({ type: 'SET_EXPORT_COLUMN_VISIBLE', colKey: key, value: !colVisible(key) });
 
   const handleAdd = () => {
     if (!name.trim()) { showToast('Enter a column name', ''); return; }
@@ -24,17 +35,23 @@ export default function ColumnManager() {
     showToast(`"${name.trim()}" column added`, 'success');
   };
 
-  // Core columns (non-removable)
-  const coreLabels = ['#', 'Desc', 'Qty', 'Unit', 'Unit Cost', 'Material $', 'Days', 'Resource', '#', 'Labor $', 'Equip $', 'Total', 'Notes'];
-
   return (
     <div className="cm">
-      <h4>Custom Columns</h4>
+      <h4>Show / hide columns</h4>
+      <p className="cm-hint">Click a column to show or hide it in the Line items table. New projects start with all columns on.</p>
 
-      {/* Column chips */}
+      {/* Toggleable standard columns */}
       <div className="cmg">
-        {coreLabels.map((label, i) => (
-          <div key={i} className="cc co"><span>{label}</span></div>
+        {BID_TABLE_COL_KEYS.map(key => (
+          <button
+            key={key}
+            type="button"
+            className={`cc co ${colVisible(key) ? 'cc-on' : 'cc-off'}`}
+            onClick={() => toggleCol(key)}
+            title={colVisible(key) ? 'Hide column' : 'Show column'}
+          >
+            {COL_LABELS[key] ?? key}
+          </button>
         ))}
         {customCols.map(col => (
           <div key={col.id} className="cc cu">
@@ -43,6 +60,8 @@ export default function ColumnManager() {
           </div>
         ))}
       </div>
+
+      <h4 style={{ marginTop: 18 }}>Add custom column</h4>
 
       {/* Add column form */}
       <div className="acf">
