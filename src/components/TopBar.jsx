@@ -10,6 +10,8 @@ export default function TopBar({
   showLoad = true,
   sidebarOpen,
   onToggleSidebar,
+  darkMode,
+  onToggleDarkMode,
 }) {
   return (
     <header className="topbar">
@@ -17,6 +19,11 @@ export default function TopBar({
         {onToggleSidebar && (
           <button type="button" className="topbar-icon-btn" onClick={onToggleSidebar} title={sidebarOpen ? 'Hide menu (full screen)' : 'Show menu'}>
             {sidebarOpen ? '◀' : '▶'}
+          </button>
+        )}
+        {onToggleDarkMode && (
+          <button type="button" className="topbar-icon-btn" onClick={onToggleDarkMode} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
+            {darkMode ? '☀' : '☽'}
           </button>
         )}
         <div className="topbar-search">

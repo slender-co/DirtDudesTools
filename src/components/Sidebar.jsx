@@ -77,7 +77,9 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onToggleSideb
   return (
     <aside className="sidebar">
       <div className="sidebar-head-row">
-        <span className="sidebar-brand">DIRT DUDES</span>
+        <div className="sidebar-logo-wrap">
+          <img src="/images/DirtDudes_Usable_Logo.png" alt="Dirt Dudes Excavating, Inc." className="sidebar-logo" />
+        </div>
         <button type="button" className="sidebar-collapse-btn" onClick={onToggleSidebar} title="Hide menu (full screen)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         </button>

@@ -34,6 +34,16 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [showResetModal, setShowResetModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return localStorage.getItem('bid-tool-theme') === 'dark'; } catch { return false; }
+  });
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(prev => {
+      const next = !prev;
+      try { localStorage.setItem('bid-tool-theme', next ? 'dark' : 'light'); } catch {}
+      return next;
+    });
+  }, []);
 
   const showToast = useCallback((message, type = '') => {
     setToast({ message, type });
@@ -75,6 +85,7 @@ export default function App() {
     <ToastContext.Provider value={showToast}>
       <div className={`app-layout ${sidebarOpen ? '' : 'sidebar-closed'}`}>
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(v => !v)} />
+        <div className={`main-theme ${darkMode ? 'theme-dark' : 'theme-light'}`} data-theme={darkMode ? 'dark' : 'light'}>
         <main className="main">
           <TopBar
             onSave={handleSave}
@@ -85,6 +96,8 @@ export default function App() {
             showLoad={false}
             sidebarOpen={sidebarOpen}
             onToggleSidebar={() => setSidebarOpen(v => !v)}
+            darkMode={darkMode}
+            onToggleDarkMode={toggleDarkMode}
           />
           <div className="main-content">
             {activeTab === 'projects' ? (
@@ -156,6 +169,7 @@ export default function App() {
             )}
           </div>
         </main>
+        </div>
       </div>
 
       {/* Toast */}
