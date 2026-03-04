@@ -8,12 +8,21 @@ export default function TopBar({
   statusText,
   statusOk,
   showLoad = true,
+  sidebarOpen,
+  onToggleSidebar,
 }) {
   return (
     <header className="topbar">
-      <div className="topbar-search">
+      <div className="topbar-left">
+        {onToggleSidebar && (
+          <button type="button" className="topbar-icon-btn" onClick={onToggleSidebar} title={sidebarOpen ? 'Hide menu (full screen)' : 'Show menu'}>
+            {sidebarOpen ? '◀' : '▶'}
+          </button>
+        )}
+        <div className="topbar-search">
         <span className="topbar-search-icon" aria-hidden>⌕</span>
         <input type="text" className="topbar-search-input" placeholder="Search here" readOnly aria-label="Search" />
+        </div>
       </div>
       <div className="topbar-actions">
         <button type="button" className="topbar-icon-btn" onClick={onSave} title="Save">💾</button>

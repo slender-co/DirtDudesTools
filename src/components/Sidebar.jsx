@@ -64,10 +64,24 @@ const icons = {
   ),
 };
 
-export default function Sidebar({ activeTab, setActiveTab }) {
+export default function Sidebar({ activeTab, setActiveTab, isOpen, onToggleSidebar }) {
+  if (!isOpen) {
+    return (
+      <aside className="sidebar sidebar-collapsed">
+        <button type="button" className="sidebar-expand-btn" onClick={onToggleSidebar} title="Show menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </aside>
+    );
+  }
   return (
     <aside className="sidebar">
-      <div className="sidebar-brand">DIRT DUDES</div>
+      <div className="sidebar-head-row">
+        <span className="sidebar-brand">DIRT DUDES</span>
+        <button type="button" className="sidebar-collapse-btn" onClick={onToggleSidebar} title="Hide menu (full screen)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+      </div>
       <div className="sidebar-cta">
         <button type="button" className="sidebar-cta-btn" aria-label="New" title="New bid (coming soon)">
           <span className="sidebar-cta-icon">+</span>

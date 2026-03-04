@@ -114,7 +114,7 @@ export default function BidTable() {
               {col.name}<ExportColToggle colKey={col.id} visible={colVisible(col.id)} onToggle={() => toggleCol(col.id)} />
             </th>
           ))}
-          <th data-col="total" className={`r ${!colVisible('total') ? 'hide-in-export' : ''}`} style={{ width: 78 }}>
+          <th data-col="total" className={`r ${!colVisible('total') ? 'hide-in-export' : ''}`} style={{ minWidth: 90 }}>
             Total<ExportColToggle colKey="total" visible={colVisible('total')} onToggle={() => toggleCol('total')} />
           </th>
           <th data-col="notes" className={!colVisible('notes') ? 'hide-in-export' : ''} style={{ minWidth: 120 }}>

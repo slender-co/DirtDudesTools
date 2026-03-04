@@ -33,6 +33,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('projects');
   const [toast, setToast] = useState(null);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const showToast = useCallback((message, type = '') => {
     setToast({ message, type });
@@ -72,8 +73,8 @@ export default function App() {
 
   return (
     <ToastContext.Provider value={showToast}>
-      <div className="app-layout">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <div className={`app-layout ${sidebarOpen ? '' : 'sidebar-closed'}`}>
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(v => !v)} />
         <main className="main">
           <TopBar
             onSave={handleSave}
@@ -82,6 +83,8 @@ export default function App() {
             statusText={statusText}
             statusOk={!state.dirty && !!savedTime}
             showLoad={false}
+            sidebarOpen={sidebarOpen}
+            onToggleSidebar={() => setSidebarOpen(v => !v)}
           />
           <div className="main-content">
             {activeTab === 'projects' ? (
