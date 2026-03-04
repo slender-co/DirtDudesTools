@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>374 Arno Way — Retaining Wall Bid Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0f2a44;--navy-mid:#1a3d5c;--navy-light:#245577;--blue:#2e75b6;--blue-light:#d6e4f0;--blue-pale:#eef4fa;--amber:#d97706;--amber-light:#fef3c7;--amber-pale:#fffbeb;--green:#166534;--green-bg:#dcfce7;--green-light:#bbf7d0;--red:#b91c1c;--red-bg:#fee2e2;--purple:#7c3aed;--purple-bg:#ede9fe;--purple-light:#c4b5fd;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-700:#334155;--gray-900:#0f172a;--radius:6px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--gray-100);color:var(--gray-900);font-size:13px;line-height:1.5;}
+.container{max-width:1400px;margin:0 auto;padding:16px;}
+.header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%);color:#fff;padding:18px 24px;border-radius:8px 8px 0 0;position:relative;}
+.hdr-edit{background:none;border:1px solid transparent;color:#fff;font-family:'DM Sans',sans-serif;padding:2px 6px;border-radius:4px;width:100%;cursor:text;}
+.hdr-edit:hover{border-color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.05);}
+.hdr-edit:focus{outline:none;border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.1);}
+.hdr-edit.title{font-size:20px;font-weight:700;letter-spacing:-0.3px;}
+.hdr-edit.sub{font-size:12px;opacity:0.85;font-weight:400;}
+.hdr-edit.scope{font-size:10px;color:#fca5a5;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.save-bar{background:var(--navy-mid);padding:7px 24px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.sb{padding:4px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.sb.p{background:var(--green);color:#fff;border-color:var(--green);}.sb.p:hover{background:#1a7a3d;}
+.sb.s{background:transparent;color:rgba(255,255,255,0.8);}.sb.s:hover{background:rgba(255,255,255,0.1);color:#fff;}
+.sb.d{background:transparent;color:#fca5a5;border-color:rgba(252,165,165,0.3);}.sb.d:hover{background:rgba(252,165,165,0.1);}
+.ss{font-size:10px;color:rgba(255,255,255,0.5);margin-left:auto;}.ss.ok{color:#86efac;}
+.controls{background:var(--gray-200);padding:12px 24px;display:flex;gap:24px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--gray-300);}
+.cg label{font-size:9px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;}
+.cg input{width:100px;padding:5px 7px;border:1px solid var(--gray-300);border-radius:4px;font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace;background:#fff;}
+.cg input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(46,117,182,0.2);}
+.cg .actual{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;margin-top:2px;display:block;letter-spacing:-0.3px;}
+.cg .actual.ok{color:var(--green);}
+.cg .actual.over{color:var(--red);}
+.cg .actual.neutral{color:var(--navy);}
+.cg .rom-label{font-size:8px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
+.hdr-auto{font-size:12px;opacity:0.85;font-weight:400;margin-top:3px;color:#fff;padding:2px 6px;}
+.tabs{display:flex;background:var(--navy);overflow-x:auto;}
+.tab{padding:9px 18px;color:rgba(255,255,255,0.6);font-weight:600;font-size:10px;cursor:pointer;border:none;background:none;text-transform:uppercase;letter-spacing:0.5px;transition:all 0.2s;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.tab:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.05);}
+.tab.active{color:#fff;background:var(--blue);}
+.tc{display:none;}.tc.active{display:block;}
+.bp{background:#fff;border:1px solid var(--gray-200);border-top:none;border-radius:0 0 8px 8px;overflow-x:auto;}
+.sh{background:var(--blue);color:#fff;padding:7px 14px;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.sh .st{font-family:'JetBrains Mono',monospace;font-size:12px;white-space:nowrap;}
+.sb2{display:flex;gap:10px;font-size:9px;font-weight:500;opacity:0.85;}
+.sb2 span{white-space:nowrap;}
+.sh-edit{background:none;border:1px solid transparent;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;padding:2px 6px;border-radius:3px;flex:1;min-width:0;cursor:text;}
+.sh-edit:hover{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);}
+.sh-edit:focus{outline:none;border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.1);}
+.sh-del{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:3px;line-height:1;transition:all 0.15s;font-family:sans-serif;}
+.sh-del:hover{color:#fff;background:rgba(239,68,68,0.4);border-color:rgba(239,68,68,0.6);}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--navy);color:#fff;padding:5px 6px;font-size:8px;text-transform:uppercase;letter-spacing:0.4px;font-weight:700;text-align:left;position:sticky;top:0;z-index:2;white-space:nowrap;}
+th.r{text-align:right;}th.c{text-align:center;}
+th.mc{background:#1a4a6e;}th.lc{background:#2d5a1e;}th.ec{background:#7c4a10;}th.dc{background:#581c87;}
+td{padding:3px 6px;border-bottom:1px solid var(--gray-100);font-size:11px;vertical-align:middle;}
+tr:hover td{background:var(--blue-pale);}
+td.n{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;}
+td.r{text-align:right;}td.c{text-align:center;}
+.ei{width:62px;padding:2px 4px;border:1px solid var(--gray-300);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;background:var(--amber-pale);font-weight:500;}
+.ei:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 2px rgba(217,119,6,0.15);background:#fff;}
+.ei-s{width:42px;}
+.li{background:#f0fdf4!important;border-color:#bbf7d0!important;}.li:focus{border-color:var(--green)!important;box-shadow:0 0 0 2px rgba(22,101,52,0.15)!important;}
+.qi{background:#faf5ff!important;border-color:var(--purple-light)!important;}.qi:focus{border-color:var(--purple)!important;box-shadow:0 0 0 2px rgba(124,58,237,0.15)!important;}
+.et{width:100%;padding:2px 4px;border:1px solid transparent;border-radius:3px;font-family:'DM Sans',sans-serif;font-size:10px;background:transparent;min-width:40px;}
+.et:hover{border-color:var(--gray-300);}.et:focus{outline:none;border-color:var(--blue);background:#fff;}
+.sr td{background:var(--blue-light)!important;font-weight:700;border-top:2px solid var(--blue);font-size:10px;}
+.ar{background:none;border:1px dashed var(--gray-300);color:var(--gray-400);padding:4px 12px;cursor:pointer;font-size:10px;font-weight:600;width:100%;text-align:center;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.ar:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale);}
+.db{background:none;border:none;color:var(--gray-300);cursor:pointer;font-size:12px;padding:1px 3px;border-radius:3px;line-height:1;}
+.db:hover{color:var(--red);background:var(--red-bg);}
+.rs{font-size:10px;padding:2px 4px;border:1px solid var(--gray-300);border-radius:3px;font-family:'DM Sans',sans-serif;background:#fff;max-width:100px;cursor:pointer;}
+.rs:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 2px rgba(124,58,237,0.15);}
+.auto-tag{font-size:8px;background:var(--purple-bg);color:var(--purple);padding:1px 4px;border-radius:2px;font-weight:700;display:inline-block;margin-left:2px;}
+/* Summary cards */
+.sc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;padding:16px;}
+.cd{padding:12px 16px;border-radius:var(--radius);border:1px solid var(--gray-200);background:#fff;}
+.cd .cl{font-size:9px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;}
+.cd .cv{font-size:17px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--navy);margin-top:3px;}
+.cd .cs{font-size:10px;color:var(--gray-500);margin-top:2px;}
+.cd.hi{background:var(--navy);border-color:var(--navy);}.cd.hi .cl{color:rgba(255,255,255,0.7);}.cd.hi .cv{color:#fff;}.cd.hi .cs{color:rgba(255,255,255,0.6);}
+.cd.wa{border-color:var(--amber);background:var(--amber-pale);}.cd.wa .cv{color:var(--amber);}
+.cd.mc2{border-left:4px solid var(--blue);}.cd.lc2{border-left:4px solid var(--green);}.cd.ec2{border-left:4px solid var(--amber);}
+.splb{display:flex;height:26px;border-radius:4px;overflow:hidden;margin:0 16px 14px;border:1px solid var(--gray-300);}
+.splb .sg{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;}
+/* PLF */
+.pb{display:flex;height:28px;border-radius:4px;overflow:hidden;margin:0 16px;border:1px solid var(--gray-300);}
+.pb .sg{display:flex;align-items:center;justify-content:center;min-width:0;}.pb .sg span{color:#fff;font-size:8px;font-weight:700;white-space:nowrap;}
+.pt2{margin:14px 16px 16px;}.pt2 table{border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;}.pt2 td{padding:5px 10px;}
+.pgh td{background:var(--blue-pale);font-weight:700;font-size:10px;color:var(--navy);border-top:2px solid var(--gray-300);}
+.pd{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle;}
+.pi{width:52px;padding:2px 4px;border:1px solid var(--gray-300);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;background:var(--amber-pale);font-weight:600;}
+.pi:focus{outline:none;border-color:var(--amber);}
+/* Rates tab */
+.rates-panel{background:#fff;border:1px solid var(--gray-200);border-top:none;border-radius:0 0 8px 8px;padding:20px;}
+.rates-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:800px){.rates-grid{grid-template-columns:1fr;}}
+.rate-section{border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;}
+.rate-section-head{padding:10px 14px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;display:flex;justify-content:space-between;align-items:center;}
+.rate-section-head.labor{background:var(--green-bg);color:var(--green);}
+.rate-section-head.equip{background:var(--amber-pale);color:var(--amber);}
+.rate-row{display:flex;gap:8px;padding:8px 14px;border-bottom:1px solid var(--gray-100);align-items:center;}
+.rate-row:hover{background:var(--gray-50);}
+.rate-row input{padding:4px 6px;border:1px solid var(--gray-300);border-radius:3px;font-family:'DM Sans',sans-serif;font-size:12px;}
+.rate-row input:focus{outline:none;border-color:var(--blue);}
+.rate-row .rn{flex:1;min-width:100px;}
+.rate-row .rr{width:80px;font-family:'JetBrains Mono',monospace;text-align:right;font-weight:600;}
+.rate-row .ru{width:60px;font-size:11px;}
+.rate-add{padding:8px 14px;text-align:center;}
+.rate-add button{padding:4px 14px;background:none;border:1px dashed var(--gray-300);color:var(--gray-400);border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;}
+.rate-add button:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale);}
+.rate-summary{margin-top:16px;padding:14px;background:var(--gray-50);border-radius:var(--radius);border:1px solid var(--gray-200);}
+.rate-summary h4{font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:8px;}
+.rate-summary .rs-item{font-size:12px;color:var(--gray-700);padding:2px 0;}
+/* Column manager */
+.cm{padding:12px 16px;background:var(--gray-50);border-top:1px solid var(--gray-200);}
+.cm h4{font-size:11px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;}
+.cmg{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.cc{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;border:1px solid var(--gray-300);background:#fff;}
+.cc.co{background:var(--blue-pale);border-color:var(--blue-light);color:var(--navy);}
+.cc.cu{background:var(--amber-pale);border-color:var(--amber-light);color:var(--amber);padding-right:4px;}
+.cc .cd2{background:none;border:1px solid transparent;cursor:pointer;color:var(--gray-400);font-size:13px;font-weight:700;padding:0 4px;line-height:1;border-radius:3px;transition:all 0.15s;}
+.cc .cd2:hover{color:#fff;background:var(--red);border-color:var(--red);}
+.acf{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;padding:8px 12px;background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius);}
+.acf .fg{display:flex;flex-direction:column;gap:2px;}
+.acf label{font-size:9px;font-weight:700;color:var(--gray-500);text-transform:uppercase;}
+.acf input,.acf select{padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:11px;font-family:'DM Sans',sans-serif;}
+.acf button{padding:4px 14px;background:var(--blue);color:#fff;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.fh{font-size:9px;color:var(--gray-400);margin-top:3px;}
+/* Notes */
+.ns{padding:16px;}.ns h3{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;}
+.ni{font-size:11px;color:var(--gray-700);padding:2px 0 2px 14px;position:relative;line-height:1.6;}
+.ni::before{content:"•";position:absolute;left:0;color:var(--blue);font-weight:700;}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:6px;font-size:12px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.2);opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;transform:translateY(0);}.toast.success{background:var(--green);}.toast.info{background:var(--blue);}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:100;}.mo.show{display:flex;}
+.md{background:#fff;border-radius:8px;padding:20px;max-width:400px;width:90%;}
+.md h3{font-size:15px;color:var(--navy);margin-bottom:10px;}.md p{font-size:12px;color:var(--gray-500);margin-bottom:14px;}
+.mb{display:flex;gap:8px;justify-content:flex-end;}.mb button{padding:7px 16px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--gray-300);font-family:'DM Sans',sans-serif;}
+.mb .cf{background:var(--red);color:#fff;border-color:var(--red);}.mb .cl{background:#fff;color:var(--gray-700);}
+.prb{padding:7px 18px;background:var(--navy);color:#fff;border:none;border-radius:4px;font-weight:600;font-size:11px;cursor:pointer;margin:14px 0;font-family:'DM Sans',sans-serif;}
+.prb:hover{background:var(--navy-light);}
+@media print{body{background:#fff;font-size:9px;}.container{max-width:100%;padding:0;}.tabs,.save-bar,.prb,.toast,.mo,.ar,.db,.cm,.rate-add{display:none!important;}.tc{display:block!important;page-break-inside:avoid;margin-bottom:16px;}.ei,.et,.pi,.hdr-edit,.li,.qi,.rs{border:none!important;background:none!important;padding:0;box-shadow:none!important;}.header{border-radius:0;}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+  <input class="hdr-edit title" id="hT" value="374 ARNO WAY — RETAINING WALL BID" oninput="mk()">
+  <div class="hdr-auto" id="hAuto"></div>
+  <input class="hdr-edit scope" id="hSc" value="WALL ONLY SCOPE — Excludes house pads, foundation, pool, utilities, flatwork, landscape" oninput="mk()" style="margin-top:4px;">
+</div>
+<div class="save-bar">
+  <button class="sb p" onclick="save()">💾 Save</button>
+  <button class="sb s" onclick="load()">📂 Load</button>
+  <button class="sb s" onclick="exp()">⬇ Export</button>
+  <button class="sb d" onclick="cfrm()">↩ Reset</button>
+  <span class="ss" id="sst">No saved data</span>
+</div>
+<div class="controls">
+  <div class="cg"><label>Wall Length (LF)</label><input type="number" id="wL" value="76.8489" step="0.01" oninput="rc();mk()"></div>
+  <div class="cg"><label>Wall Height (FT)</label><input type="number" id="wH" value="6" step="0.5" oninput="rc();mk()"></div>
+  <div style="display:flex;gap:10px;margin-left:auto;flex-wrap:wrap;align-items:center;">
+    <div style="text-align:center;padding:6px 12px;background:var(--blue-pale);border-radius:var(--radius);border:1px solid var(--blue-light);">
+      <div style="font-size:7px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;">Actual PLF</div>
+      <div style="font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;" id="actPLF">$0</div>
+      <div style="font-size:8px;color:var(--gray-400);">ROM: $<input type="number" id="tP" value="400" step="1" oninput="rc();mk()" style="width:40px;border:1px solid var(--gray-300);border-radius:2px;font-size:8px;font-family:'JetBrains Mono',monospace;text-align:center;padding:1px;background:var(--gray-50);color:var(--gray-500);font-weight:600;"></div>
+      <div style="font-size:8px;font-weight:700;margin-top:1px;" id="plfDelta"></div>
+    </div>
+    <div style="text-align:center;padding:6px 12px;background:var(--green-bg);border-radius:var(--radius);border:1px solid var(--green-light);">
+      <div style="font-size:7px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;">Actual PSF</div>
+      <div style="font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;" id="actPSF">$0</div>
+      <div style="font-size:8px;color:var(--gray-400);">ROM: $<input type="number" id="wP" value="50" step="1" oninput="rc();mk()" style="width:34px;border:1px solid var(--gray-300);border-radius:2px;font-size:8px;font-family:'JetBrains Mono',monospace;text-align:center;padding:1px;background:var(--gray-50);color:var(--gray-500);font-weight:600;"></div>
+      <div style="font-size:8px;font-weight:700;margin-top:1px;" id="psfDelta"></div>
+    </div>
+    <div style="border-left:2px solid var(--gray-300);padding-left:12px;text-align:right;">
+      <div style="font-size:8px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;">Base Bid Total</div>
+      <div style="font-size:22px;font-weight:700;color:var(--navy);font-family:'JetBrains Mono',monospace;" id="gT">$0.00</div>
+    </div>
+  </div>
+</div>
+<div class="tabs">
+  <button class="tab active" onclick="st('bid',this)">Full Bid</button>
+  <button class="tab" onclick="st('rates',this)">Rates</button>
+  <button class="tab" onclick="st('plf',this)">PLF Breakdown</button>
+  <button class="tab" onclick="st('sum',this)">Summary</button>
+  <button class="tab" onclick="st('notes',this)">Notes</button>
+  <button class="tab" onclick="st('info',this)">Info / Glossary</button>
+</div>
+
+<!-- BID TAB -->
+<div id="tab-bid" class="tc active"><div class="bp"><table><thead id="bH"></thead><tbody id="bB"></tbody></table></div>
+<div class="cm"><h4>Custom Columns</h4><div class="cmg" id="cCh"></div>
+<div class="acf"><div class="fg"><label>Name</label><input id="ncN" placeholder="e.g. Markup" style="width:100px;"></div><div class="fg"><label>Type</label><select id="ncT" onchange="tfh()"><option value="text">Text</option><option value="number">Number</option><option value="currency">Currency</option><option value="formula">Formula</option></select></div><div class="fg" id="fG" style="display:none"><label>Formula</label><input id="ncF" placeholder="{mat}*0.1" style="width:160px;"></div><button onclick="aCC()">+ Add</button></div>
+<div class="fh" id="fHe" style="display:none">Variables: {qty} {uc} {mat}=material$ {lab}=labor$ {eq}=equip$ {total} {dur} {lf} {plf}</div>
+</div></div>
+
+<!-- RATES TAB -->
+<div id="tab-rates" class="tc"><div class="rates-panel">
+<div style="margin-bottom:16px;"><h3 style="font-size:16px;color:var(--navy);margin-bottom:4px;">Resource Rate Cards</h3><p style="font-size:12px;color:var(--gray-500);">Define your labor and equipment day-rates here. These populate the Resource dropdown in the bid table. Fractional days are supported — 0.8 days × $250/day = $200.</p></div>
+<div class="rates-grid"><div class="rate-section"><div class="rate-section-head labor">Labor Rates<span style="font-size:10px;font-weight:400;opacity:0.7;" id="labCount"></span></div><div id="labRates"></div><div class="rate-add"><button onclick="addRate('labor')">+ Add Labor Rate</button></div></div>
+<div class="rate-section"><div class="rate-section-head equip">Equipment Rates<span style="font-size:10px;font-weight:400;opacity:0.7;" id="eqCount"></span></div><div id="eqRates"></div><div class="rate-add"><button onclick="addRate('equip')">+ Add Equipment Rate</button></div></div></div>
+<div class="rate-summary"><h4>How It Works</h4>
+<div class="rs-item">1. Define rates above → they appear in the <b>Resource</b> dropdown on each bid row.</div>
+<div class="rs-item">2. On a bid row, select a resource, set <b>Duration</b> (days) and <b>Count</b> (# workers/units).</div>
+<div class="rs-item">3. <b>Auto-calc:</b> Rate × Duration × Count → fills Labor $ or Equip $ automatically.</div>
+<div class="rs-item">4. Fractional days work: 0.5 days × $250 Laborer × 2 workers = $250.</div>
+<div class="rs-item">5. Set Resource to <b>"— Manual —"</b> to type Labor $ or Equip $ directly.</div>
+</div></div></div>
+
+<!-- PLF TAB -->
+<div id="tab-plf" class="tc"><div class="bp" style="padding-top:16px">
+  <div style="padding:0 16px 10px;display:flex;gap:12px;flex-wrap:wrap;">
+    <div class="cd" style="flex:1;min-width:140px;border-color:var(--blue);"><div class="cl">Wall Stem</div><div class="cv" id="pw">$300</div><div class="cs"><span id="pwp">75.0</span>%</div></div>
+    <div class="cd" style="flex:1;min-width:140px;border-color:var(--amber);"><div class="cl">Footing</div><div class="cv" id="pf">$100</div><div class="cs"><span id="pfp">25.0</span>%</div></div>
+    <div class="cd" style="flex:1;min-width:140px;" id="pbc"><div class="cl">Total %</div><div class="cv" id="ptp">100%</div><div class="cs" id="pbm">Balanced</div></div>
+  </div>
+  <div class="pb" id="pBar"></div>
+  <div class="pt2"><table><thead><tr><th>Scope</th><th class="c" style="width:70px">%</th><th class="r" style="width:70px">$/LF</th><th class="r" style="width:100px">Project $</th></tr></thead><tbody id="pBd"></tbody></table></div>
+</div></div>
+
+<!-- SUMMARY TAB -->
+<div id="tab-sum" class="tc"><div class="bp"><div class="sc" id="sCd"></div>
+<div id="sbw" style="padding:0 16px;"><div style="font-size:9px;font-weight:700;color:var(--gray-500);text-transform:uppercase;margin-bottom:4px;">Material / Labor / Equipment Split</div></div>
+<div class="splb" id="sBar"></div>
+<div style="padding:0 16px 16px;"><table><thead><tr><th>#</th><th>Section</th><th class="r">Material</th><th class="r">Labor</th><th class="r">Equip</th><th class="r">Days</th><th class="r">Total</th><th class="r">%</th></tr></thead><tbody id="sBd"></tbody></table></div>
+</div></div>
+
+<!-- NOTES TAB -->
+<div id="tab-notes" class="tc"><div class="bp" style="padding:20px;">
+<div id="notesContainer"></div>
+<div style="margin-top:16px;"><button class="ar" onclick="addNSec()" style="max-width:300px;margin:0;">+ Add Section</button></div>
+</div></div>
+
+<!-- INFO TAB -->
+<div id="tab-info" class="tc"><div class="bp" style="padding:24px;">
+<div style="margin-bottom:20px;"><h3 style="font-size:16px;color:var(--navy);margin-bottom:4px;">Bid Tool Guide & Glossary</h3><p style="font-size:12px;color:var(--gray-500);line-height:1.7;">This reference covers every abbreviation, column, and concept used throughout the tool. Intended for anyone reviewing or editing the bid who wasn't part of the original build process.</p></div>
+
+<div class="ns" style="margin-bottom:20px;"><h3>Controls Bar — Top of Page</h3>
+<div class="ni"><b>Wall Length (LF)</b> — Total linear footage of the retaining wall being bid. LF = Linear Feet. This drives the quantity for all line items set to "LF" qty mode.</div>
+<div class="ni"><b>Wall Height (FT)</b> — Height of the retaining wall in feet. Used to calculate PSF (Price per Square Foot) metrics. FT = Feet.</div>
+<div class="ni"><b>Actual PLF</b> — Your real cost per linear foot based on the total bid ÷ wall length. This updates live as you edit any pricing. PLF = Price per Linear Foot ($/LF).</div>
+<div class="ni"><b>Actual PSF</b> — Your real cost per square foot based on total bid ÷ (wall length × wall height). PSF = Price per Square Foot ($/SF).</div>
+<div class="ni"><b>ROM Target</b> — Rough Order of Magnitude. The small editable number beneath each badge. This is your planning estimate to compare against — not a calculation input. The delta text ("+$X over" or "-$X under") shows how your actual bid compares to this target.</div>
+<div class="ni"><b>Base Bid Total</b> — Sum of all line items across all sections: Material + Labor + Equipment for every row.</div>
+</div>
+
+<div class="ns" style="margin-bottom:20px;"><h3>Bid Table — Column Definitions</h3>
+<div class="ni"><b>#</b> — Sequential row number. Auto-assigned.</div>
+<div class="ni"><b>Description</b> — Text field describing the scope item. Fully editable.</div>
+<div class="ni"><b>Qty</b> — Quantity for this line item. Click to cycle between three modes: <b>LF</b> (auto-fills from Wall Length), <b>LS</b> (Lump Sum = 1), or <b>EA</b> (Each — manual entry for any custom quantity).</div>
+<div class="ni"><b>Unit</b> — Unit of measurement. Displays LF, LS, or EA depending on Qty mode. Click to cycle along with Qty.</div>
+<div class="ni"><b>Unit Cost</b> — Material unit cost in dollars. For LF items, this is the cost per linear foot of material only (no labor or equipment). Material $ = Qty × Unit Cost.</div>
+<div class="ni"><b>Material $</b> — Calculated: Qty × Unit Cost. Represents raw material cost for this line item. Highlighted in blue header columns.</div>
+<div class="ni"><b>Days</b> — Duration in working days for this task. Supports fractional values (e.g. 0.5 = half day, 1.5 = day and a half). Purple-tinted input. Used to calculate auto labor/equipment costs when a Resource is assigned.</div>
+<div class="ni"><b>Resource</b> — Dropdown populated from the Rates tab. Select a labor role or equipment type to auto-calculate cost. Set to "— Manual —" to type Labor $ or Equip $ directly. When a resource is assigned, the corresponding $ field shows "auto" tag and is computed as: Rate × Days × Count.</div>
+<div class="ni"><b># (Count)</b> — Number of workers or equipment units for this task. E.g., 2 iron workers × 3 days × $500/day = $3,000. Purple-tinted input.</div>
+<div class="ni"><b>Labor $</b> — Labor cost for this line item. Either auto-calculated (Rate × Days × Count when a labor resource is assigned) or manually entered. Green-tinted input. Labeled with green header.</div>
+<div class="ni"><b>Equip $</b> — Equipment cost for this line item. Same logic as Labor $ but for equipment resources. Amber-tinted input. Labeled with amber/brown header.</div>
+<div class="ni"><b>Line Total</b> — Material $ + Labor $ + Equip $ for this row. This is the all-in cost for this scope item.</div>
+<div class="ni"><b>Notes</b> — Free-form text for specifications, references, or context. Fully editable.</div>
+</div>
+
+<div class="ns" style="margin-bottom:20px;"><h3>Qty Mode Reference</h3>
+<div class="ni"><b>LF (Linear Foot)</b> — Quantity auto-populates from the Wall Length control. Used for items that scale with wall length (concrete, rebar, pipe, etc.).</div>
+<div class="ni"><b>LS (Lump Sum)</b> — Quantity = 1. Used for fixed-cost items (mobilization, permits, engineering, crew labor days, etc.).</div>
+<div class="ni"><b>EA (Each)</b> — Manual quantity entry. Used for items with custom counts (cubic yards of import fill, number of inspections, etc.).</div>
+</div>
+
+<div class="ns" style="margin-bottom:20px;"><h3>Rates Tab</h3>
+<div class="ni"><b>Rate Card</b> — A named resource with a daily rate. Two categories: Labor (green) and Equipment (amber). These populate the Resource dropdown on every bid row.</div>
+<div class="ni"><b>Day Rate</b> — The cost per day for this resource. Fractional days are supported: 0.8 days × $250/day = $200.00.</div>
+<div class="ni"><b>Auto-calc Formula</b> — When a resource is assigned to a bid row: <b>Rate × Days × Count = Labor $ or Equip $</b>. The result appears with a purple "auto" tag.</div>
+</div>
+
+<div class="ns" style="margin-bottom:20px;"><h3>PLF Breakdown Tab</h3>
+<div class="ni"><b>PLF (Price per Linear Foot)</b> — Total cost per running foot of wall. Industry-standard metric for retaining wall pricing. Your $400 ROM = $300 wall stem + $100 footing.</div>
+<div class="ni"><b>Wall Stem</b> — The vertical portion of the retaining wall above the footing. Includes concrete, rebar, formwork, and labor for the stem itself.</div>
+<div class="ni"><b>Footing</b> — The horizontal concrete base that the wall sits on. Transfers wall loads into the soil. Design dimensions TBD by structural engineer.</div>
+<div class="ni"><b>Stacked Bar</b> — Visual breakdown of how the PLF is distributed across cost components. Each segment's percentage is editable — adjust to see how cost allocation shifts.</div>
+<div class="ni"><b>Balance Indicator</b> — Percentages must total 100%. Green = balanced. Red = needs adjustment.</div>
+</div>
+
+<div class="ns" style="margin-bottom:20px;"><h3>Summary Tab</h3>
+<div class="ni"><b>Material / Labor / Equipment Split</b> — Stacked bar showing percentage of total bid in each cost category. Helps evaluate if your bid is material-heavy or labor-heavy.</div>
+<div class="ni"><b>Est. Duration</b> — Sum of the peak (maximum) duration from each section. Gives a rough project timeline estimate.</div>
+<div class="ni"><b>ROM Baseline</b> — Wall Length × ROM PLF Target. The "should-cost" number you're comparing your actual bid against.</div>
+<div class="ni"><b>Variance</b> — Actual bid total minus ROM baseline. Positive = over budget. Negative = under budget. Card turns amber when over.</div>
+</div>
+
+<div class="ns" style="margin-bottom:20px;"><h3>Abbreviations Quick Reference</h3>
+<div class="ni"><b>CIP</b> — Cast-In-Place. Concrete poured on-site into forms (vs. precast or CMU block).</div>
+<div class="ni"><b>CMU</b> — Concrete Masonry Unit. Block wall construction (NOT used on this project — wall is CIP).</div>
+<div class="ni"><b>PLF</b> — Price per Linear Foot ($/LF). Total cost divided by wall length.</div>
+<div class="ni"><b>PSF</b> — Price per Square Foot ($/SF). Total cost divided by wall face area (length × height).</div>
+<div class="ni"><b>ROM</b> — Rough Order of Magnitude. A planning-level cost estimate, not a firm quote.</div>
+<div class="ni"><b>LF</b> — Linear Feet. Horizontal measurement of the wall.</div>
+<div class="ni"><b>LS</b> — Lump Sum. A fixed total price regardless of quantity.</div>
+<div class="ni"><b>EA</b> — Each. A per-unit count for items not measured in linear feet.</div>
+<div class="ni"><b>CY</b> — Cubic Yard. Volume measure (27 cubic feet). Used for soil, concrete, gravel.</div>
+<div class="ni"><b>SF</b> — Square Foot/Feet. Area measure (length × height).</div>
+<div class="ni"><b>SE</b> — Structural Engineer. Licensed professional who designs the wall and footing.</div>
+<div class="ni"><b>CBC</b> — California Building Code (2025 edition governs this project).</div>
+<div class="ni"><b>ROW</b> — Right of Way. Public roadway or access area.</div>
+<div class="ni"><b>GL</b> — General Liability (insurance).</div>
+<div class="ni"><b>WC</b> — Workers' Compensation (insurance).</div>
+<div class="ni"><b>GC</b> — General Contractor.</div>
+<div class="ni"><b>BMP</b> — Best Management Practice. Erosion/pollution controls during construction.</div>
+<div class="ni"><b>SWPPP</b> — Stormwater Pollution Prevention Plan.</div>
+<div class="ni"><b>ASTM</b> — American Society for Testing and Materials. Standards body for construction materials.</div>
+<div class="ni"><b>D1557</b> — ASTM test method for soil compaction (Modified Proctor). 90% D1557 is the compaction standard.</div>
+<div class="ni"><b>SDR-35</b> — Standard Dimension Ratio pipe rating. Used for subdrain pipe specification.</div>
+<div class="ni"><b>pcf</b> — Pounds per Cubic Foot. Unit for soil/earth pressure.</div>
+<div class="ni"><b>psf</b> — Pounds per Square Foot. Unit for soil bearing capacity and wall pressure.</div>
+<div class="ni"><b>psi</b> — Pounds per Square Inch. Unit for concrete compressive strength (f'c).</div>
+<div class="ni"><b>f'c</b> — Specified compressive strength of concrete. Minimum 2,500 psi on this project.</div>
+<div class="ni"><b>ohm-cm</b> — Ohm-centimeters. Unit for soil resistivity/corrosivity. Lower = more corrosive.</div>
+</div>
+
+<div class="ns"><h3>Tool Features</h3>
+<div class="ni"><b>Save / Load</b> — Stores all data in your browser's local storage. Persists between sessions as long as you use the same browser.</div>
+<div class="ni"><b>Export Snapshot</b> — Downloads a standalone HTML file with all current data baked in. Can be shared, archived, or opened on any computer with a browser. No internet required.</div>
+<div class="ni"><b>Reset to Defaults</b> — Wipes all edits and returns to the original pre-loaded values. Cannot be undone.</div>
+<div class="ni"><b>Print / PDF</b> — Opens your browser's print dialog. Select "Save as PDF" to create a static document. Print styling hides edit controls and interactive elements.</div>
+<div class="ni"><b>Custom Columns</b> — Add your own columns to the bid table via the Column Manager below the table. Types: Text, Number, Currency ($), or Formula (auto-calculated from other values).</div>
+<div class="ni"><b>Add / Delete Rows</b> — Use "+ Add Row" to insert new line items in any section. Use the ✕ button to remove rows. Cannot delete the last item in a section.</div>
+<div class="ni"><b>Color Coding</b> — Blue headers/tint = Material. Green = Labor. Amber/brown = Equipment. Purple = Duration/Resource. Amber-pale inputs = editable cost fields.</div>
+</div>
+</div></div>
+
+<button class="prb" onclick="window.print()">🖨 Print / PDF</button>
+</div>
+<div class="toast" id="tst"></div>
+<div class="mo" id="rM"><div class="md"><h3>Reset to Defaults?</h3><p>Erases all edits, rates, custom columns, saved data.</p><div class="mb"><button class="cl" onclick="clM()">Cancel</button><button class="cf" onclick="doR()">Reset</button></div></div></div>
+
+<script>
+const SK='arno_v5';let dirty=false,colCtr=0,customCols=[];
+
+// ═══ DEFAULT RATES ═══
+const defaultRates=[
+  {id:'lr1',name:'Laborer',cat:'labor',rate:250,unit:'/day',notes:'General labor'},
+  {id:'lr2',name:'Skilled Laborer',cat:'labor',rate:350,unit:'/day',notes:'Experienced'},
+  {id:'lr3',name:'Foreman',cat:'labor',rate:450,unit:'/day',notes:'Crew lead'},
+  {id:'lr4',name:'Concrete Finisher',cat:'labor',rate:400,unit:'/day',notes:'Pour & finish'},
+  {id:'lr5',name:'Iron Worker (Rebar)',cat:'labor',rate:500,unit:'/day',notes:'Tie & place'},
+  {id:'lr6',name:'Carpenter (Forms)',cat:'labor',rate:450,unit:'/day',notes:'Set, strip, clean'},
+  {id:'er1',name:'Mini Excavator',cat:'equip',rate:1500,unit:'/day',notes:'CAT 305 or equiv'},
+  {id:'er2',name:'Skidsteer',cat:'equip',rate:1200,unit:'/day',notes:'Bobcat S650 or equiv'},
+  {id:'er3',name:'Concrete Pump (Line)',cat:'equip',rate:1500,unit:'/pour',notes:'Per pump event'},
+  {id:'er4',name:'Plate Compactor',cat:'equip',rate:250,unit:'/day',notes:'Wacker or equiv'},
+  {id:'er5',name:'Dump Truck (10-yd)',cat:'equip',rate:800,unit:'/day',notes:'Haul & dump'},
+  {id:'er6',name:'Generator',cat:'equip',rate:150,unit:'/day',notes:'Job site power'},
+  {id:'er7',name:'Water Truck',cat:'equip',rate:600,unit:'/day',notes:'Dust/compaction'},
+];
+let rates=JSON.parse(JSON.stringify(defaultRates));
+
+// ═══ DEFAULT SECTIONS ═══
+// Each item: desc, unit, uc(matl unit cost), notes, qtyMode, dur(duration days), rateId, rateCt(count), labor, equip, manualQty, custom
+const DS=[
+  {id:"demo",title:"1. DEMOLITION",items:[
+    {id:"d1",desc:"Saw-cut, break, load existing wall",unit:"LF",uc:25,notes:"Remove 2.5'-3.5' wall",qtyMode:"lf",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"d2",desc:"Demo debris haul-off & dump fees",unit:"LS",uc:2500,notes:"To approved facility",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"d3",desc:"Demo crew",unit:"LS",uc:0,notes:"",qtyMode:"ls",dur:2,rateId:'lr1',rateCt:1,labor:0,equip:0,custom:{}},
+    {id:"d4",desc:"Excavator (demo)",unit:"LS",uc:0,notes:"",qtyMode:"ls",dur:2,rateId:'er1',rateCt:1,labor:0,equip:0,custom:{}},
+    {id:"d5",desc:"Skidsteer (demo)",unit:"LS",uc:0,notes:"",qtyMode:"ls",dur:2,rateId:'er2',rateCt:1,labor:0,equip:0,custom:{}},
+  ]},
+  {id:"earth",title:"2. EARTHWORK",items:[
+    {id:"e1",desc:"Footing trench excavation",unit:"LF",uc:18,notes:"3.5'-4.0' W × 12\" D",qtyMode:"lf",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"e2",desc:"Grading & site prep",unit:"LF",uc:12,notes:"Fine grade, compact subgrade",qtyMode:"lf",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"e3",desc:"Trench spoil haul-off",unit:"LS",uc:1000,notes:"To approved facility",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"e4",desc:"Backfill & compaction (90% D1557)",unit:"LF",uc:20,notes:"6-8\" lifts",qtyMode:"lf",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"e5",desc:"Earthwork crew",unit:"LS",uc:0,notes:"",qtyMode:"ls",dur:3,rateId:'lr1',rateCt:1,labor:0,equip:0,custom:{}},
+    {id:"e6",desc:"Mini Excavator (earthwork)",unit:"LS",uc:0,notes:"",qtyMode:"ls",dur:3,rateId:'er1',rateCt:1,labor:0,equip:0,custom:{}},
+    {id:"e7",desc:"Skidsteer (earthwork)",unit:"LS",uc:0,notes:"",qtyMode:"ls",dur:3,rateId:'er2',rateCt:1,labor:0,equip:0,custom:{}},
+  ]},
+  {id:"ftg",title:"3. CONCRETE FOOTING (Type II, 2500 psi)",items:[
+    {id:"f1",desc:"Continuous spread footing material",unit:"LF",uc:100,notes:"$100 PLF — concrete + rebar + forming",qtyMode:"lf",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"f2",desc:"Footing crew",unit:"LS",uc:0,notes:"Form, tie, pour",qtyMode:"ls",dur:2,rateId:'lr2',rateCt:2,labor:0,equip:0,custom:{}},
+    {id:"f3",desc:"Concrete pump (footing pour)",unit:"LS",uc:0,notes:"",qtyMode:"ls",dur:1,rateId:'er3',rateCt:1,labor:0,equip:0,custom:{}},
+  ]},
+  {id:"wall",title:"4. RETAINING WALL (6'-0\" CIP Concrete)",items:[
+    {id:"w1",desc:"CIP wall material — 6' ht",unit:"LF",uc:300,notes:"$50 PSF × 6 FT = $300 PLF",qtyMode:"lf",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"w2",desc:"Iron worker crew (rebar)",unit:"LS",uc:0,notes:"Tie & place — footing + stem",qtyMode:"ls",dur:3,rateId:'lr5',rateCt:2,labor:0,equip:0,custom:{}},
+    {id:"w3",desc:"Carpenter crew (formwork)",unit:"LS",uc:0,notes:"Set, strip, clean — stem both sides",qtyMode:"ls",dur:3,rateId:'lr6',rateCt:2,labor:0,equip:0,custom:{}},
+    {id:"w4",desc:"Concrete finisher (stem pour)",unit:"LS",uc:0,notes:"",qtyMode:"ls",dur:1,rateId:'lr4',rateCt:2,labor:0,equip:0,custom:{}},
+    {id:"w5",desc:"Concrete pump (stem pour)",unit:"LS",uc:0,notes:"",qtyMode:"ls",dur:1,rateId:'er3',rateCt:1,labor:0,equip:0,custom:{}},
+  ]},
+  {id:"drain",title:"5. SUBDRAINAGE (Petra RW-1/RW-2)",items:[
+    {id:"dr1",desc:"Subdrain pipe (4\" PVC Sch 40)",unit:"LF",uc:8,notes:"Perfs down, 1% grade",qtyMode:"lf",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"dr2",desc:"Drain rock (3/4\"-1.5\")",unit:"LF",uc:15,notes:"1 CF/FT min",qtyMode:"lf",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"dr3",desc:"Filter fabric (Mirafi 140N)",unit:"LF",uc:3,notes:"Wrap gravel",qtyMode:"lf",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"dr4",desc:"Moisture barrier",unit:"LF",uc:6,notes:"Fill side of wall",qtyMode:"lf",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"dr5",desc:"Solid outlet pipe",unit:"LS",uc:1500,notes:"To daylight",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"dr6",desc:"Drain crew",unit:"LS",uc:0,notes:"",qtyMode:"ls",dur:1,rateId:'lr1',rateCt:1,labor:0,equip:0,custom:{}},
+  ]},
+  {id:"misc",title:"6. MISCELLANEOUS",items:[
+    {id:"m1",desc:"Fine grading & cleanup",unit:"LF",uc:8,notes:"Site restoration",qtyMode:"lf",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"m2",desc:"Mobilization & demobilization",unit:"LS",uc:3500,notes:"Equipment + staging",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"m3",desc:"Erosion control / BMPs",unit:"LS",uc:1000,notes:"During construction",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"m4",desc:"Utility locate (DigAlert/811)",unit:"LS",uc:500,notes:"Hand dig near utilities",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+  ]},
+  {id:"eng",title:"7. ENGINEERING, PERMITS & INSPECTIONS",items:[
+    {id:"en1",desc:"Structural engineering",unit:"LS",uc:3500,notes:"Stamped plans",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"en2",desc:"Geotech observation & testing",unit:"LS",uc:2500,notes:"Per Petra",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"en3",desc:"City permits & plan check",unit:"LS",uc:2000,notes:"City of LA",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"en4",desc:"Special inspections",unit:"LS",uc:2000,notes:"3 per CBC",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"en5",desc:"Survey / staking",unit:"LS",uc:1500,notes:"Layout",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+  ]},
+  {id:"allow",title:"8. ALLOWANCES & CONTINGENCIES",items:[
+    {id:"a1",desc:"Shoring / temp support",unit:"LS",uc:2500,notes:"If needed",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"a2",desc:"Unforeseen conditions",unit:"LS",uc:3000,notes:"Rock, utilities, soil",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"a3",desc:"Wall cap / finish",unit:"LS",uc:1500,notes:"Optional",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"a4",desc:"Traffic control",unit:"LS",uc:750,notes:"If ROW impact",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+    {id:"a5",desc:"GC / supervision / insurance",unit:"LS",uc:2500,notes:"GL, WC, overhead",qtyMode:"ls",dur:0,rateId:'',rateCt:0,labor:0,equip:0,custom:{}},
+  ]},
+];
+const DPLF=[
+  {id:"pc1",label:"Concrete — Stem",group:"wall",pct:15,color:"#2563eb"},
+  {id:"pc2",label:"Rebar — Stem",group:"wall",pct:9,color:"#3b82f6"},
+  {id:"pc3",label:"Formwork — Stem",group:"wall",pct:18,color:"#60a5fa"},
+  {id:"pc4",label:"Labor — Stem",group:"wall",pct:33,color:"#93c5fd"},
+  {id:"pc5",label:"Concrete — Footing",group:"ftg",pct:6.25,color:"#d97706"},
+  {id:"pc6",label:"Rebar — Footing",group:"ftg",pct:3,color:"#f59e0b"},
+  {id:"pc7",label:"Forming / Excavation",group:"ftg",pct:4.5,color:"#fbbf24"},
+  {id:"pc8",label:"Labor — Footing",group:"ftg",pct:11.25,color:"#fcd34d"},
+];
+let secs=JSON.parse(JSON.stringify(DS)),plf=JSON.parse(JSON.stringify(DPLF));
+
+// ═══ HELPERS ═══
+function gLF(){return parseFloat(document.getElementById('wL').value)||0;}
+function gPLF(){return parseFloat(document.getElementById('tP').value)||0;}
+function gQ(i){if(i.qtyMode==='lf')return gLF();if(i.qtyMode==='ls')return 1;return i.manualQty||0;}
+function gRate(id){return rates.find(r=>r.id===id);}
+
+function gLab(i){if(i.rateId){const r=gRate(i.rateId);if(r&&r.cat==='labor')return r.rate*(i.dur||0)*(i.rateCt||0);}return i.labor||0;}
+function gEq(i){if(i.rateId){const r=gRate(i.rateId);if(r&&r.cat==='equip')return r.rate*(i.dur||0)*(i.rateCt||0);}return i.equip||0;}
+function gMat(i){return gQ(i)*(i.uc||0);}
+function gTot(i){return gMat(i)+gLab(i)+gEq(i);}
+function sMat(s){return s.items.reduce((a,i)=>a+gMat(i),0);}
+function sLab(s){return s.items.reduce((a,i)=>a+gLab(i),0);}
+function sEq(s){return s.items.reduce((a,i)=>a+gEq(i),0);}
+function sTot(s){return s.items.reduce((a,i)=>a+gTot(i),0);}
+function sDur(s){return Math.max(...s.items.map(i=>i.dur||0),0);}
+function gM(){return secs.reduce((a,s)=>a+sMat(s),0);}
+function gL(){return secs.reduce((a,s)=>a+sLab(s),0);}
+function gE(){return secs.reduce((a,s)=>a+sEq(s),0);}
+function gGT(){return secs.reduce((a,s)=>a+sTot(s),0);}
+function $(n){return'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function N(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function E(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML.replace(/"/g,'&quot;');}
+function evalF(f,i){try{const c={qty:gQ(i),uc:i.uc||0,mat:gMat(i),lab:gLab(i),eq:gEq(i),total:gTot(i),dur:i.dur||0,lf:gLF(),plf:gPLF()};customCols.forEach(cc=>{c['col_'+cc.id]=parseFloat(i.custom&&i.custom[cc.id])||0;});let e=f.replace(/\{(\w+)\}/g,(_,k)=>c[k]!==undefined?c[k]:0);return Function('"use strict";return('+e+')')();}catch(x){return 0;}}
+function fi(id){for(const s of secs){const i=s.items.find(x=>x.id===id);if(i)return i;}return null;}
+
+// ═══ RATES TAB ═══
+function renderRates(){
+  ['labor','equip'].forEach(cat=>{
+    const el=document.getElementById(cat==='labor'?'labRates':'eqRates');
+    const list=rates.filter(r=>r.cat===cat);
+    document.getElementById(cat==='labor'?'labCount':'eqCount').textContent=`(${list.length})`;
+    let h='';
+    list.forEach(r=>{
+      h+=`<div class="rate-row"><input class="rn" value="${E(r.name)}" onchange="uRate('${r.id}','name',this.value)"><input class="rr" type="number" step="1" value="${r.rate}" onchange="uRate('${r.id}','rate',this.value)"><input class="ru" value="${E(r.unit)}" onchange="uRate('${r.id}','unit',this.value)"><button class="db" onclick="dRate('${r.id}')" title="Remove">✕</button></div>`;
+    });
+    el.innerHTML=h;
+  });
+}
+function uRate(id,f,v){const r=gRate(id);if(r){r[f]=f==='rate'?parseFloat(v)||0:v;rc();mk();}}
+function dRate(id){rates=rates.filter(r=>r.id!==id);secs.forEach(s=>s.items.forEach(i=>{if(i.rateId===id){i.rateId='';}}));renderRates();rc();mk();}
+function addRate(cat){const id=(cat==='labor'?'lr':'er')+Date.now();rates.push({id,name:'New '+(cat==='labor'?'Role':'Equipment'),cat,rate:0,unit:'/day',notes:''});renderRates();mk();toast(cat+' rate added','success');}
+
+function rateOpts(){let h='<option value="">— Manual —</option>';
+  const labs=rates.filter(r=>r.cat==='labor'),eqs=rates.filter(r=>r.cat==='equip');
+  if(labs.length){h+='<optgroup label="Labor">';labs.forEach(r=>{h+=`<option value="${r.id}">${E(r.name)} (${$(r.rate)}${r.unit})</option>`;});h+='</optgroup>';}
+  if(eqs.length){h+='<optgroup label="Equipment">';eqs.forEach(r=>{h+=`<option value="${r.id}">${E(r.name)} (${$(r.rate)}${r.unit})</option>`;});h+='</optgroup>';}
+  return h;}
+
+// ═══ BID UPDATES ═══
+function uUC(id,v){const i=fi(id);if(i){i.uc=parseFloat(v)||0;rc();mk();}}
+function uLab(id,v){const i=fi(id);if(i){i.labor=parseFloat(v)||0;rc();mk();}}
+function uEq(id,v){const i=fi(id);if(i){i.equip=parseFloat(v)||0;rc();mk();}}
+function uD(id,v){const i=fi(id);if(i){i.desc=v;mk();}}
+function uN(id,v){const i=fi(id);if(i){i.notes=v;mk();}}
+function uMQ(id,v){const i=fi(id);if(i){i.manualQty=parseFloat(v)||0;rc();mk();}}
+function uDur(id,v){const i=fi(id);if(i){i.dur=parseFloat(v)||0;rc();mk();}}
+function uRI(id,v){const i=fi(id);if(i){i.rateId=v;rc();mk();}}
+function uRC(id,v){const i=fi(id);if(i){i.rateCt=parseFloat(v)||0;rc();mk();}}
+function uCv(id,cid,v,t){const i=fi(id);if(i){if(!i.custom)i.custom={};i.custom[cid]=t==='number'?parseFloat(v)||0:v;rc();mk();}}
+function uPP(id,v){const i=plf.find(x=>x.id===id);if(i){i.pct=parseFloat(v)||0;rPLF();mk();}}
+function cyQ(id){const i=fi(id);if(!i)return;const m=['lf','ls','manual'],u={lf:'LF',ls:'LS',manual:'EA'};let x=(m.indexOf(i.qtyMode)+1)%3;i.qtyMode=m[x];i.unit=u[m[x]];if(i.qtyMode==='manual'&&!i.manualQty)i.manualQty=0;rc();mk();}
+function aRow(sid){const s=secs.find(x=>x.id===sid);if(!s)return;const c={};customCols.forEach(cc=>{c[cc.id]=cc.type==='text'?'':0;});s.items.push({id:'r'+Date.now(),desc:'(new item)',unit:'LS',uc:0,labor:0,equip:0,notes:'',qtyMode:'ls',dur:0,rateId:'',rateCt:0,custom:c});rc();mk();}
+function dRow(id){for(const s of secs){const x=s.items.findIndex(i=>i.id===id);if(x!==-1){if(s.items.length<=1){toast('Cannot delete last item','');return;}s.items.splice(x,1);rc();mk();return;}}}
+
+// ═══ SECTION MANAGEMENT ═══
+function addSec(){const n=secs.length+1;const c={};customCols.forEach(cc=>{c[cc.id]=cc.type==='text'?'':0;});secs.push({id:'sec_'+Date.now(),title:n+'. NEW SECTION',items:[{id:'r'+Date.now(),desc:'(new item)',unit:'LS',uc:0,labor:0,equip:0,notes:'',qtyMode:'ls',dur:0,rateId:'',rateCt:0,custom:c}]});rc();mk();toast('Section added','success');}
+function dSec(sid){if(secs.length<=1){toast('Cannot delete last section','');return;}secs=secs.filter(s=>s.id!==sid);rc();mk();toast('Section removed','info');}
+function uSecT(sid,v){const s=secs.find(x=>x.id===sid);if(s){s.title=v;rc();mk();}}
+
+// Custom cols
+function tfh(){const t=document.getElementById('ncT').value;document.getElementById('fG').style.display=t==='formula'?'':'none';document.getElementById('fHe').style.display=t==='formula'?'':'none';}
+function aCC(){const n=document.getElementById('ncN').value.trim(),t=document.getElementById('ncT').value,f=document.getElementById('ncF').value.trim();if(!n){toast('Enter name','');return;}colCtr++;customCols.push({id:'c'+colCtr+'_'+Date.now(),name:n,type:t,formula:t==='formula'?f:''});secs.forEach(s=>s.items.forEach(i=>{if(!i.custom)i.custom={};i.custom[customCols[customCols.length-1].id]=t==='text'?'':0;}));document.getElementById('ncN').value='';document.getElementById('ncF').value='';rc();mk();toast('"'+n+'" added','success');}
+function dCC(cid){const n=customCols.find(c=>c.id===cid);customCols=customCols.filter(c=>c.id!==cid);secs.forEach(s=>s.items.forEach(i=>{if(i.custom)delete i.custom[cid];}));rc();mk();toast(n?'"'+n.name+'" removed':'Column removed','info');}
+function rChips(){let h='';['#','Desc','Qty','Unit','Unit Cost','Material $','Dur','Resource','#','Labor $','Equip $','Total','Notes'].forEach(n=>{h+=`<div class="cc co"><span>${n}</span></div>`;});customCols.forEach(c=>{h+=`<div class="cc cu"><span>${E(c.name)}</span><button class="cd2" onclick="dCC('${c.id}')">✕</button></div>`;});document.getElementById('cCh').innerHTML=h;}
+
+// ═══ RENDER BID ═══
+function rBid(){
+  rChips();
+  const cc=customCols,nc=14+cc.length,ro=rateOpts();
+  let hh='<tr><th style="width:20px"></th><th style="width:24px">#</th><th style="min-width:140px">Description</th><th class="c" style="width:42px">Qty</th><th class="c" style="width:30px">U</th>';
+  hh+='<th class="r mc" style="width:68px">Unit Cost</th><th class="r mc" style="width:76px">Material $</th>';
+  hh+='<th class="c dc" style="width:42px">Days</th><th class="dc" style="width:100px">Resource</th><th class="c dc" style="width:32px">#</th>';
+  hh+='<th class="r lc" style="width:66px">Labor $</th><th class="r ec" style="width:66px">Equip $</th>';
+  cc.forEach(c=>{hh+=`<th class="r" style="width:70px">${E(c.name)}</th>`;});
+  hh+='<th class="r" style="width:78px">Total</th><th style="min-width:120px">Notes</th></tr>';
+  document.getElementById('bH').innerHTML=hh;
+
+  let html='',num=0;
+  secs.forEach(sec=>{
+    const sm=sMat(sec),sl=sLab(sec),se=sEq(sec),st2=sTot(sec);
+    html+=`<tr><td colspan="${nc}" style="padding:0"><div class="sh"><div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;"><input class="sh-edit" value="${E(sec.title)}" onchange="uSecT('${sec.id}',this.value)"><button class="sh-del" onclick="dSec('${sec.id}')" title="Delete section">✕</button></div><div style="display:flex;gap:12px;align-items:center"><div class="sb2"><span>Mat: ${$(sm)}</span><span>Lab: ${$(sl)}</span><span>Eq: ${$(se)}</span></div><span class="st">${$(st2)}</span></div></div></td></tr>`;
+
+    sec.items.forEach(item=>{
+      num++;const q=gQ(item),mat=gMat(item),lab=gLab(item),eq=gEq(item),tot=gTot(item);
+      const r=item.rateId?gRate(item.rateId):null;
+      const isAutoLab=r&&r.cat==='labor';
+      const isAutoEq=r&&r.cat==='equip';
+      let qD=item.qtyMode==='lf'?N(q):item.qtyMode==='manual'?`<input class="ei ei-s" type="number" value="${item.manualQty||0}" onchange="uMQ('${item.id}',this.value)">`:'1';
+
+      html+=`<tr><td class="c"><button class="db" onclick="dRow('${item.id}')">✕</button></td>`;
+      html+=`<td class="c n">${num}</td>`;
+      html+=`<td><input class="et" value="${E(item.desc)}" onchange="uD('${item.id}',this.value)"></td>`;
+      html+=`<td class="c n" style="cursor:pointer" onclick="cyQ('${item.id}')" title="Cycle: LF/LS/Manual">${qD}</td>`;
+      html+=`<td class="c" style="cursor:pointer;font-size:9px;color:var(--gray-400)" onclick="cyQ('${item.id}')">${item.unit||'LS'}</td>`;
+      html+=`<td class="r"><input class="ei" type="number" step="0.01" value="${item.uc}" onchange="uUC('${item.id}',this.value)"></td>`;
+      html+=`<td class="r n">${$(mat)}</td>`;
+      // Duration
+      html+=`<td class="c"><input class="ei ei-s qi" type="number" step="0.1" value="${item.dur||0}" onchange="uDur('${item.id}',this.value)"></td>`;
+      // Resource dropdown
+      html+=`<td><select class="rs" value="${item.rateId||''}" onchange="uRI('${item.id}',this.value)">${ro.replace(`value="${item.rateId}"`,`value="${item.rateId}" selected`)}</select></td>`;
+      // Count
+      html+=`<td class="c"><input class="ei ei-s qi" type="number" step="1" value="${item.rateCt||0}" onchange="uRC('${item.id}',this.value)"></td>`;
+      // Labor $
+      if(isAutoLab){html+=`<td class="r n" style="color:var(--green)" title="Auto: ${r.name} × ${item.dur}d × ${item.rateCt}">${$(lab)}<span class="auto-tag">auto</span></td>`;}
+      else{html+=`<td class="r"><input class="ei li" type="number" step="1" value="${item.labor||0}" onchange="uLab('${item.id}',this.value)"></td>`;}
+      // Equip $
+      if(isAutoEq){html+=`<td class="r n" style="color:var(--amber)" title="Auto: ${r.name} × ${item.dur}d × ${item.rateCt}">${$(eq)}<span class="auto-tag">auto</span></td>`;}
+      else{html+=`<td class="r"><input class="ei" type="number" step="1" value="${item.equip||0}" onchange="uEq('${item.id}',this.value)" style="background:var(--amber-pale)"></td>`;}
+      // Custom cols
+      cc.forEach(col=>{const v=item.custom&&item.custom[col.id]!==undefined?item.custom[col.id]:(col.type==='text'?'':0);
+        if(col.type==='formula'){html+=`<td class="r n" style="color:var(--blue)">${$(evalF(col.formula,item))}</td>`;}
+        else if(col.type==='currency'||col.type==='number'){html+=`<td class="r"><input class="ei" type="number" step="0.01" value="${v}" onchange="uCv('${item.id}','${col.id}',this.value,'number')"></td>`;}
+        else{html+=`<td><input class="et" value="${E(String(v))}" onchange="uCv('${item.id}','${col.id}',this.value,'text')"></td>`;}});
+      html+=`<td class="r n" style="font-weight:700">${$(tot)}</td>`;
+      html+=`<td><input class="et" value="${E(item.notes)}" onchange="uN('${item.id}',this.value)" style="color:var(--gray-400);font-size:9px"></td></tr>`;
+    });
+    html+=`<tr><td colspan="${nc}" style="padding:0"><button class="ar" onclick="aRow('${sec.id}')">+ Add Row</button></td></tr>`;
+    html+=`<tr class="sr"><td></td><td></td><td>SUBTOTAL</td><td></td><td></td><td></td><td class="r n">${$(sMat(sec))}</td><td></td><td></td><td></td><td class="r n">${$(sLab(sec))}</td><td class="r n">${$(sEq(sec))}</td>`;
+    cc.forEach(col=>{if(col.type==='formula'||col.type==='currency'){html+=`<td class="r n">${$(sec.items.reduce((a,i)=>a+(col.type==='formula'?evalF(col.formula,i):(parseFloat(i.custom&&i.custom[col.id])||0)),0))}</td>`;}else{html+=`<td></td>`;}});
+    html+=`<td class="r n" style="font-size:11px">${$(sTot(sec))}</td><td></td></tr>`;
+  });
+
+  const tm=gM(),tl=gL(),te=gE(),gt=gGT();
+  html+=`<tr style="background:var(--navy)"><td style="background:var(--navy)"></td><td colspan="5" style="color:#fff;font-weight:700;font-size:12px;text-align:right;padding:8px 6px">TOTAL</td><td class="r" style="color:#93c5fd;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px">${$(tm)}</td><td colspan="3" style="background:var(--navy)"></td><td class="r" style="color:#bbf7d0;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px">${$(tl)}</td><td class="r" style="color:#fde68a;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px">${$(te)}</td>`;
+  cc.forEach(()=>{html+=`<td style="background:var(--navy)"></td>`;});
+  html+=`<td class="r" style="color:#fff;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:13px">${$(gt)}</td><td style="background:var(--navy)"></td></tr>`;
+  html+=`<tr><td colspan="${nc}" style="padding:0"><button class="ar" onclick="addSec()" style="border-radius:0;border-left:none;border-right:none;padding:6px 12px;font-size:11px;">+ Add Section</button></td></tr>`;
+  document.getElementById('bB').innerHTML=html;
+}
+
+// ═══ PLF ═══
+function rPLF(){
+  const p=gPLF(),l=gLF(),tp=plf.reduce((s,i)=>s+i.pct,0),wp=plf.filter(i=>i.group==='wall').reduce((s,i)=>s+i.pct,0),fp=plf.filter(i=>i.group==='ftg').reduce((s,i)=>s+i.pct,0);
+  document.getElementById('pw').textContent=$((wp/100)*p);document.getElementById('pwp').textContent=wp.toFixed(1);
+  document.getElementById('pf').textContent=$((fp/100)*p);document.getElementById('pfp').textContent=fp.toFixed(1);
+  document.getElementById('ptp').textContent=tp.toFixed(2)+'%';
+  const bc=document.getElementById('pbc'),bm=document.getElementById('pbm');
+  if(Math.abs(tp-100)<0.01){bc.style.borderColor='var(--green)';bc.style.background='var(--green-bg)';document.getElementById('ptp').style.color='var(--green)';bm.textContent='Balanced';bm.style.color='var(--green)';}
+  else{bc.style.borderColor='var(--red)';bc.style.background='var(--red-bg)';document.getElementById('ptp').style.color='var(--red)';bm.textContent='Adjust to 100%';bm.style.color='var(--red)';}
+  let bh='';plf.forEach(i=>{const w=(i.pct/(tp||1))*100;bh+=`<div class="sg" style="width:${w}%;background:${i.color}">${i.pct>=5?`<span>${i.pct.toFixed(1)}%</span>`:''}</div>`;});document.getElementById('pBar').innerHTML=bh;
+  let th='';const g={wall:{l:'Wall Stem ($'+((wp/100)*p).toFixed(0)+'/LF)',i:[]},ftg:{l:'Footing ($'+((fp/100)*p).toFixed(0)+'/LF)',i:[]}};plf.forEach(i=>g[i.group].i.push(i));
+  ['wall','ftg'].forEach(k=>{th+=`<tr class="pgh"><td colspan="4">${g[k].l}</td></tr>`;g[k].i.forEach((it,idx)=>{const pv=(it.pct/100)*p,pj=pv*l;th+=`<tr style="background:${idx%2===0?'#fff':'var(--gray-50)'}"><td><span class="pd" style="background:${it.color}"></span>${it.label}</td><td class="c"><input class="pi" type="number" step="0.25" value="${it.pct}" onchange="uPP('${it.id}',this.value)">%</td><td class="r n">${$(pv)}</td><td class="r n">${$(pj)}</td></tr>`;});});
+  th+=`<tr style="background:var(--navy);color:#fff;font-weight:700"><td>TOTAL</td><td class="c">${tp.toFixed(2)}%</td><td class="r n">${$(p)}</td><td class="r n">${$(p*l)}</td></tr>`;
+  document.getElementById('pBd').innerHTML=th;
+}
+
+// ═══ SUMMARY ═══
+function rSum(){
+  const gt=gGT(),tm=gM(),tl=gL(),te=gE(),lf=gLF(),ht=parseFloat(document.getElementById('wH').value)||6;
+  const romPLF=gPLF(),romPSF=parseFloat(document.getElementById('wP').value)||50;
+  const rom=lf*romPLF;
+  const actPLF=lf>0?gt/lf:0;
+  const actPSF=(lf*ht)>0?gt/(lf*ht):0;
+  const wallSec=secs.find(s=>s.id==='wall')||{items:[]};
+  const ftgSec=secs.find(s=>s.id==='ftg')||{items:[]};
+  const wallCost=sTot(wallSec)+sTot(ftgSec);
+  const wallPLF=lf>0?wallCost/lf:0;
+  const totalDays=secs.reduce((a,s)=>a+sDur(s),0);
+  let ch=`<div class="cd hi"><div class="cl">Bid Total</div><div class="cv">${$(gt)}</div><div class="cs">${secs.length} sections</div></div>`;
+  ch+=`<div class="cd mc2"><div class="cl">Material</div><div class="cv">${$(tm)}</div><div class="cs">${gt?(tm/gt*100).toFixed(1):'0'}%</div></div>`;
+  ch+=`<div class="cd lc2"><div class="cl">Labor</div><div class="cv">${$(tl)}</div><div class="cs">${gt?(tl/gt*100).toFixed(1):'0'}%</div></div>`;
+  ch+=`<div class="cd ec2"><div class="cl">Equipment</div><div class="cv">${$(te)}</div><div class="cs">${gt?(te/gt*100).toFixed(1):'0'}%</div></div>`;
+  ch+=`<div class="cd"><div class="cl">Actual PLF (Full Bid)</div><div class="cv">${$(actPLF)}</div><div class="cs">vs $${romPLF} ROM target</div></div>`;
+  ch+=`<div class="cd"><div class="cl">Actual PSF (Full Bid)</div><div class="cv">${$(actPSF)}</div><div class="cs">vs $${romPSF} ROM target</div></div>`;
+  ch+=`<div class="cd"><div class="cl">Wall+Footing PLF</div><div class="cv">${$(wallPLF)}</div><div class="cs">Sec 3+4 only — construction core</div></div>`;
+  ch+=`<div class="cd"><div class="cl">Est. Duration</div><div class="cv">${totalDays.toFixed(1)}d</div><div class="cs">Sum of section peaks</div></div>`;
+  ch+=`<div class="cd"><div class="cl">ROM Baseline</div><div class="cv">${$(rom)}</div><div class="cs">${N(lf)} LF × $${romPLF}</div></div>`;
+  ch+=`<div class="cd ${gt>rom?'wa':''}"><div class="cl">Variance vs ROM</div><div class="cv">${$(gt-rom)}</div><div class="cs">${gt>rom?'Over':'Under'} by ${rom?Math.abs((gt-rom)/rom*100).toFixed(1):'0'}%</div></div>`;
+  document.getElementById('sCd').innerHTML=ch;
+  let sb='';if(gt>0){sb+=`<div class="sg" style="width:${tm/gt*100}%;background:var(--blue)">${tm/gt>.08?'Mat '+Math.round(tm/gt*100)+'%':''}</div>`;sb+=`<div class="sg" style="width:${tl/gt*100}%;background:var(--green)">${tl/gt>.08?'Lab '+Math.round(tl/gt*100)+'%':''}</div>`;sb+=`<div class="sg" style="width:${te/gt*100}%;background:var(--amber)">${te/gt>.08?'Eq '+Math.round(te/gt*100)+'%':''}</div>`;}
+  document.getElementById('sBar').innerHTML=sb;
+  let th='';secs.forEach((sec,i)=>{const st2=sTot(sec),sd=sDur(sec);
+    th+=`<tr style="background:${i%2===0?'#fff':'var(--gray-50)'}"><td class="c n">${i+1}</td><td>${E(sec.title)}</td><td class="r n">${$(sMat(sec))}</td><td class="r n">${$(sLab(sec))}</td><td class="r n">${$(sEq(sec))}</td><td class="r n">${sd>0?sd.toFixed(1)+'d':'—'}</td><td class="r n" style="font-weight:600">${$(st2)}</td><td class="r n">${gt?(st2/gt*100).toFixed(1):'0'}%</td></tr>`;});
+  th+=`<tr class="sr"><td></td><td>TOTAL</td><td class="r n">${$(tm)}</td><td class="r n">${$(tl)}</td><td class="r n">${$(te)}</td><td class="r n">${totalDays.toFixed(1)}d</td><td class="r n" style="font-size:12px">${$(gt)}</td><td class="r n">100%</td></tr>`;
+  document.getElementById('sBd').innerHTML=th;
+}
+
+function rc(){
+  const gt=gGT(),lf=gLF(),ht=parseFloat(document.getElementById('wH').value)||6;
+  const sf=lf*ht;
+  const actualPLF=lf>0?gt/lf:0;
+  const actualPSF=sf>0?gt/sf:0;
+  const romPLF=gPLF(),romPSF=parseFloat(document.getElementById('wP').value)||50;
+  const wallSec=secs.find(s=>s.id==='wall')||{items:[]};
+  const ftgSec=secs.find(s=>s.id==='ftg')||{items:[]};
+  const wallCost=sTot(wallSec)+sTot(ftgSec);
+  const wallPLF=lf>0?wallCost/lf:0;
+  // Grand total
+  document.getElementById('gT').textContent=$(gt);
+  // Actual PLF badge + color
+  const aPE=document.getElementById('actPLF');
+  aPE.textContent=$(actualPLF);
+  aPE.style.color=actualPLF>romPLF*1.02?'var(--red)':actualPLF<romPLF*0.98?'var(--green)':'var(--navy)';
+  // PLF delta text
+  const pDE=document.getElementById('plfDelta'),plfD=actualPLF-romPLF;
+  if(Math.abs(plfD)<1){pDE.textContent='On target';pDE.style.color='var(--green)';}
+  else if(plfD>0){pDE.textContent='+$'+plfD.toFixed(0)+' over ROM';pDE.style.color='var(--red)';}
+  else{pDE.textContent='-$'+Math.abs(plfD).toFixed(0)+' under ROM';pDE.style.color='var(--green)';}
+  // Actual PSF badge + color
+  const aSE=document.getElementById('actPSF');
+  aSE.textContent=$(actualPSF);
+  aSE.style.color=actualPSF>romPSF*1.02?'var(--red)':actualPSF<romPSF*0.98?'var(--green)':'var(--navy)';
+  // PSF delta text
+  const pSE=document.getElementById('psfDelta'),psfD=actualPSF-romPSF;
+  if(Math.abs(psfD)<1){pSE.textContent='On target';pSE.style.color='var(--green)';}
+  else if(psfD>0){pSE.textContent='+$'+psfD.toFixed(0)+' over ROM';pSE.style.color='var(--red)';}
+  else{pSE.textContent='-$'+Math.abs(psfD).toFixed(0)+' under ROM';pSE.style.color='var(--green)';}
+  // Dynamic header subtitle
+  const pTag=plfD>0?'(+$'+plfD.toFixed(0)+' over)':plfD<-1?'(-$'+Math.abs(plfD).toFixed(0)+' under)':'(on target)';
+  document.getElementById('hAuto').innerHTML=`${ht}'-0" CIP Concrete | ${N(lf)} LF | <b>$${actualPLF.toFixed(0)} PLF</b> / $${actualPSF.toFixed(0)} PSF ${pTag}`;
+  document.title=document.getElementById('hT').value;
+  rBid();rPLF();rSum();renderRates();
+}
+function st(n,b){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');if(b)b.classList.add('active');}
+
+// ═══ SAVE/LOAD ═══
+function gSt(){return{v:5,at:new Date().toISOString(),hdr:{t:document.getElementById('hT').value,sc:document.getElementById('hSc').value},ctrl:{wl:parseFloat(document.getElementById('wL').value),tp:parseFloat(document.getElementById('tP').value),wp:parseFloat(document.getElementById('wP').value),wh:parseFloat(document.getElementById('wH').value)},secs,plf,rates,customCols,colCtr,noteSecs};}
+function aSt(s){if(!s)return;if(s.hdr){document.getElementById('hT').value=s.hdr.t||'';document.getElementById('hSc').value=s.hdr.sc||'';}if(s.ctrl){document.getElementById('wL').value=s.ctrl.wl;document.getElementById('tP').value=s.ctrl.tp;document.getElementById('wP').value=s.ctrl.wp;document.getElementById('wH').value=s.ctrl.wh;}if(s.secs)secs=JSON.parse(JSON.stringify(s.secs));if(s.plf)plf=JSON.parse(JSON.stringify(s.plf));if(s.rates)rates=JSON.parse(JSON.stringify(s.rates));if(s.customCols)customCols=JSON.parse(JSON.stringify(s.customCols));if(s.colCtr)colCtr=s.colCtr;if(s.noteSecs)noteSecs=JSON.parse(JSON.stringify(s.noteSecs));secs.forEach(s=>s.items.forEach(i=>{if(!i.custom)i.custom={};if(i.dur===undefined)i.dur=0;if(i.rateId===undefined)i.rateId='';if(i.rateCt===undefined)i.rateCt=0;if(i.labor===undefined)i.labor=0;if(i.equip===undefined)i.equip=0;}));rc();rNotes();dirty=false;uSS();}
+function save(){try{localStorage.setItem(SK,JSON.stringify(gSt()));dirty=false;uSS();toast('Saved','success');}catch(e){toast('Failed','');}}
+function load(){try{const r=localStorage.getItem(SK);if(!r){toast('No data','');return;}aSt(JSON.parse(r));toast('Loaded','info');}catch(e){toast('Failed','');}}
+function exp(){const s=gSt();const b=new Blob([document.documentElement.outerHTML.replace('</body>',`<script>try{localStorage.setItem('${SK}',${JSON.stringify(JSON.stringify(s))});}catch(e){}<\/script></body>`)],{type:'text/html'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=document.getElementById('hT').value.replace(/[^a-zA-Z0-9]/g,'_').substring(0,40)+'_'+new Date().toISOString().slice(0,10)+'.html';a.click();URL.revokeObjectURL(u);toast('Exported','success');}
+function cfrm(){document.getElementById('rM').classList.add('show');}
+function clM(){document.getElementById('rM').classList.remove('show');}
+function doR(){clM();localStorage.removeItem(SK);secs=JSON.parse(JSON.stringify(DS));plf=JSON.parse(JSON.stringify(DPLF));rates=JSON.parse(JSON.stringify(defaultRates));customCols=[];colCtr=0;noteSecs=JSON.parse(JSON.stringify(defaultNotes));document.getElementById('hT').value='374 ARNO WAY — RETAINING WALL BID';document.getElementById('hSc').value='WALL ONLY SCOPE — Excludes house pads, foundation, pool, utilities, flatwork, landscape';document.getElementById('wL').value='76.8489';document.getElementById('tP').value='400';document.getElementById('wP').value='50';document.getElementById('wH').value='6';dirty=false;rc();rNotes();uSS();toast('Reset','info');}
+function mk(){dirty=true;uSS();}
+function uSS(){const el=document.getElementById('sst'),r=localStorage.getItem(SK);if(r){const s=JSON.parse(r),d=new Date(s.at),str=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});el.textContent=dirty?'Unsaved ('+str+')':'Saved: '+str;el.className=dirty?'ss':'ss ok';}else{el.textContent=dirty?'Unsaved':'No saved data';el.className='ss';}}
+function toast(m,t){const e=document.getElementById('tst');e.textContent=m;e.className='toast show'+(t?' '+t:'');setTimeout(()=>e.className='toast',2500);}
+
+// ═══ NOTES DATA ═══
+const defaultNotes=[
+  {id:'ns1',title:'Key Assumptions & References',items:[
+    {id:'n1',text:'Wall Type: CIP (cast-in-place) concrete — NOT CMU. Design TBD by SE.'},
+    {id:'n2',text:'Pricing per CE/builder: $50 PSF wall + $100 PLF footing = $400 PLF total ROM.'},
+    {id:'n3',text:'Footing TBD by SE — assumed 3.5\'-4.0\' W × 12" D.'},
+    {id:'n4',text:'Geotech: Petra (J.N. 25-367) governs soil & subdrain requirements.'},
+    {id:'n5',text:'Wall not designed to support surcharge loads (per CBC note 7).'},
+    {id:'n6',text:'Seismic lateral earth pressures not required — walls ≤6\' per Petra p.20.'},
+    {id:'n7',text:'Corrosivity: 1,938 ohm-cm — highly corrosive soil. Consult corrosion eng. if needed.'},
+    {id:'n8',text:'La Habra standard: 30 psf active; Petra site = 40 psf on-site (33% higher) — 30 psf w/ imported fill.'},
+    {id:'n9',text:'Concrete cure time: minimum 24-48 hrs before stripping forms or loading wall.'},
+    {id:'n10',text:'Compaction testing by Petra geotech mandatory during backfill phase.'},
+    {id:'n11',text:'All allowances ROM — subject to adjustment based on field conditions.'},
+    {id:'n12',text:'All work to conform to 2025 CBC and City of Los Angeles requirements.'},
+    {id:'n13',text:'3 inspections per CBC: (1) Footing, (2) Rebar/pre-pour & drainage, (3) Final.'},
+    {id:'n14',text:'Cleanouts required for concrete pours over 5\' in height per CBC note 8.'},
+  ]},
+  {id:'ns2',title:'Exclusions',items:[
+    {id:'n15',text:'House pads, foundation work, pool, utilities, flatwork, landscape, fencing, electrical/lighting.'},
+    {id:'n16',text:'Work beyond retaining wall footprint — grading beyond wall zone.'},
+    {id:'n17',text:'Retaining walls on neighboring properties or outside project boundary.'},
+    {id:'n18',text:'Any work requiring separate permits beyond retaining wall permit.'},
+  ]},
+  {id:'ns3',title:'Project Info',items:[
+    {id:'n19',text:'Project: 374 Arno Way, Pacific Palisades, CA 90272'},
+    {id:'n20',text:'Client: Christopherson Builders'},
+    {id:'n21',text:'Geotech: Petra Geosciences, J.N. 25-367, Feb 5, 2026'},
+    {id:'n22',text:'Earth Pressures: Per Petra — active 30 pcf (imported fill) / 40 pcf (on-site)'},
+    {id:'n23',text:'Soil Bearing: 1,500 psf allowable (per Petra)'},
+    {id:'n24',text:'Compaction: 90% ASTM D1557, 6-8" lifts'},
+    {id:'n25',text:'Rebar: ASTM A615, Grade 40 — per engineered design TBD'},
+    {id:'n26',text:'Concrete: Type II cement, min f\'c = 2,500 psi'},
+    {id:'n27',text:'Subdrain: 4" PVC Sch 40/SDR-35, perfs down, 1% gradient (per Petra RW-1/RW-2)'},
+  ]},
+];
+let noteSecs=JSON.parse(JSON.stringify(defaultNotes));
+
+function rNotes(){
+  let h='';
+  noteSecs.forEach(sec=>{
+    h+=`<div class="ns" style="margin-bottom:16px;border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;">`;
+    h+=`<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);">`;
+    h+=`<input class="et" value="${E(sec.title)}" onchange="uNSec('${sec.id}',this.value)" style="font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;flex:1;">`;
+    h+=`<button class="db" onclick="dNSec('${sec.id}')" title="Delete section" style="font-size:14px;">✕</button>`;
+    h+=`</div><div style="padding:8px 16px;">`;
+    sec.items.forEach(item=>{
+      h+=`<div style="display:flex;align-items:flex-start;gap:6px;padding:3px 0;">`;
+      h+=`<span style="color:var(--blue);font-weight:700;font-size:12px;margin-top:3px;">•</span>`;
+      h+=`<input class="et" value="${E(item.text)}" onchange="uNote('${sec.id}','${item.id}',this.value)" style="flex:1;font-size:12px;color:var(--gray-700);line-height:1.6;">`;
+      h+=`<button class="db" onclick="dNote('${sec.id}','${item.id}')" title="Delete note" style="margin-top:2px;">✕</button>`;
+      h+=`</div>`;
+    });
+    h+=`<button class="ar" onclick="aNoteItem('${sec.id}')" style="margin-top:6px;font-size:10px;padding:3px 10px;">+ Add Note</button>`;
+    h+=`</div></div>`;
+  });
+  document.getElementById('notesContainer').innerHTML=h;
+}
+function uNSec(sid,v){const s=noteSecs.find(x=>x.id===sid);if(s){s.title=v;mk();}}
+function uNote(sid,nid,v){const s=noteSecs.find(x=>x.id===sid);if(s){const n=s.items.find(x=>x.id===nid);if(n){n.text=v;mk();}}}
+function aNoteItem(sid){const s=noteSecs.find(x=>x.id===sid);if(s){s.items.push({id:'n'+Date.now(),text:'(new note)'});rNotes();mk();}}
+function dNote(sid,nid){const s=noteSecs.find(x=>x.id===sid);if(s){s.items=s.items.filter(x=>x.id!==nid);rNotes();mk();}}
+function addNSec(){noteSecs.push({id:'ns'+Date.now(),title:'NEW SECTION',items:[{id:'n'+Date.now(),text:'(new note)'}]});rNotes();mk();}
+function dNSec(sid){if(noteSecs.length<=1){toast('Keep at least one section','');return;}noteSecs=noteSecs.filter(x=>x.id!==sid);rNotes();mk();}
+
+(function(){try{const r=localStorage.getItem(SK);if(r)aSt(JSON.parse(r));else rc();}catch(e){rc();}uSS();rNotes();})();
+</script>
+</body>
+</html>
