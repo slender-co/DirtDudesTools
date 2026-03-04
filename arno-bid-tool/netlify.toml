@@ -1,0 +1,4 @@
+# Netlify config — used when you connect this repo to Netlify
+[build]
+  command = "npm run build"
+  publish = "dist"
