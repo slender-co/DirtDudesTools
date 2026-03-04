@@ -260,8 +260,7 @@ export default function BidTable() {
         {/* Add section button */}
         <tr>
           <td colSpan={totalCols} style={{ padding: 0 }}>
-            <button className="ar" onClick={() => dispatch({ type: 'ADD_SECTION' })}
-              style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', padding: '6px 12px', fontSize: 11 }}>
+            <button type="button" className="ar ar-section" onClick={() => dispatch({ type: 'ADD_SECTION' })}>
               + Add Section
             </button>
           </td>

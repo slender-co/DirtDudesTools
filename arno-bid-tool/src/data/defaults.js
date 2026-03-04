@@ -53,7 +53,20 @@ const item = (id, desc, unit, uc, notes, qtyMode = 'lf', dur = 0, rateId = '', r
   labor: 0, equip: 0, manualQty: 0, custom: {},
 });
 
-// ─── BID SECTIONS ──────────────────────────────────────────────────
+// ─── BLANK TEMPLATE (one section, one row — for new projects & reset) ─
+export const blankSections = [
+  {
+    id: 'sec1',
+    title: '1. NEW SECTION',
+    items: [item('r1', '(new item)', 'LS', 0, '', 'ls', 0, '', 0)],
+  },
+];
+
+export const blankNotes = [
+  { id: 'ns1', title: 'Notes', items: [{ id: 'n1', text: '' }] },
+];
+
+// ─── BID SECTIONS (full demo template — kept for reference) ───────────
 export const defaultSections = [
   {
     id: 'demo',

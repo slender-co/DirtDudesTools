@@ -7,6 +7,7 @@ export default function TopBar({
   onResetClick,
   statusText,
   statusOk,
+  showLoad = true,
 }) {
   return (
     <header className="topbar">
@@ -16,7 +17,7 @@ export default function TopBar({
       </div>
       <div className="topbar-actions">
         <button type="button" className="topbar-icon-btn" onClick={onSave} title="Save">💾</button>
-        <button type="button" className="topbar-icon-btn" onClick={onLoad} title="Load">📂</button>
+        {showLoad && <button type="button" className="topbar-icon-btn" onClick={onLoad} title="Load">📂</button>}
         <button type="button" className="topbar-icon-btn" onClick={onExport} title="Export">⬇</button>
         <button type="button" className="topbar-icon-btn topbar-icon-btn-danger" onClick={onResetClick} title="Reset">↩</button>
         <span className={`topbar-status ${statusOk ? 'ok' : ''}`}>{statusText}</span>

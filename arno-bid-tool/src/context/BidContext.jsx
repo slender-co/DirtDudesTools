@@ -15,40 +15,49 @@
  *   dirty      – boolean (unsaved changes)
  */
 
-import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
 import {
   defaultRates, defaultSections, defaultPLF,
   defaultNotes, defaultControls, defaultHeader,
+  blankSections, blankNotes,
 } from '../data/defaults';
-import { loadState, saveState, clearSaved, getSavedTime } from '../utils/storage';
 import { uid } from '../utils/formatters';
+import {
+  getProjectsList,
+  saveProjectsList,
+  getProjectData,
+  saveProjectData,
+  getCurrentProjectId,
+  setCurrentProjectId as persistCurrentProjectId,
+  getProjectSavedTime,
+} from '../utils/projectsStorage';
 
 // Deep-clone helper
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
 
-// ─── INITIAL STATE ────────────────────────────────────────────────
-
-function getInitialState() {
-  const saved = loadState();
-  if (saved) {
-    return {
-      header:     saved.header     || clone(defaultHeader),
-      controls:   saved.controls   || clone(defaultControls),
-      sections:   saved.sections   || clone(defaultSections),
-      rates:      saved.rates      || clone(defaultRates),
-      plf:        saved.plf        || clone(defaultPLF),
-      notes:      saved.notes      || clone(defaultNotes),
-      customCols: saved.customCols || [],
-      dirty: false,
-    };
-  }
+/** Full template (all demo sections) — used only as fallback */
+function getDefaultBidState(overrides = {}) {
   return {
-    header:     clone(defaultHeader),
+    header:     overrides.header ?? clone(defaultHeader),
     controls:   clone(defaultControls),
     sections:   clone(defaultSections),
     rates:      clone(defaultRates),
     plf:        clone(defaultPLF),
     notes:      clone(defaultNotes),
+    customCols: [],
+    dirty: false,
+  };
+}
+
+/** Blank template: one section, one row. Same columns; rates/plf kept for dropdowns. */
+function getBlankBidState(headerOverrides = {}) {
+  return {
+    header:     { ...clone(defaultHeader), ...headerOverrides },
+    controls:   clone(defaultControls),
+    sections:   clone(blankSections),
+    rates:      clone(defaultRates),
+    plf:        clone(defaultPLF),
+    notes:      clone(blankNotes),
     customCols: [],
     dirty: false,
   };
@@ -355,12 +364,110 @@ function bidReducer(state, action) {
 
 const BidContext = createContext(null);
 
-export function BidProvider({ children }) {
-  const [state, dispatch] = useReducer(bidReducer, null, getInitialState);
+const AUTO_SAVE_DELAY_MS = 600;
 
-  // Convenience: save action
+export function BidProvider({ children }) {
+  const [state, dispatch] = useReducer(bidReducer, null, () => getDefaultBidState());
+  const [projects, setProjects] = React.useState([]);
+  const [currentProjectId, setCurrentProjectIdState] = React.useState(null);
+  const autoSaveTimerRef = useRef(null);
+
+  // Load projects list and current project on mount
+  useEffect(() => {
+    setProjects(getProjectsList());
+    const storedCurrent = getCurrentProjectId();
+    if (storedCurrent) setCurrentProjectIdState(storedCurrent);
+  }, []);
+
+  // When currentProjectId is set, load that project's data
+  useEffect(() => {
+    if (!currentProjectId) {
+      dispatch({ type: 'LOAD_STATE', state: getBlankBidState() });
+      return;
+    }
+    const data = getProjectData(currentProjectId);
+    if (data && data.sections && data.sections.length > 0) {
+      dispatch({
+        type: 'LOAD_STATE',
+        state: {
+          header:     data.header     || clone(defaultHeader),
+          controls:   data.controls   || clone(defaultControls),
+          sections:   data.sections   || clone(blankSections),
+          rates:      data.rates      || clone(defaultRates),
+          plf:        data.plf        || clone(defaultPLF),
+          notes:      data.notes      || clone(blankNotes),
+          customCols: data.customCols || [],
+        },
+      });
+    } else {
+      dispatch({ type: 'LOAD_STATE', state: getBlankBidState() });
+    }
+  }, [currentProjectId]);
+
+  // Auto-save when state (bid data) changes and we have a current project
+  useEffect(() => {
+    if (!currentProjectId || !state.dirty) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    const pid = currentProjectId;
+    const payload = {
+      header: state.header,
+      controls: state.controls,
+      sections: state.sections,
+      rates: state.rates,
+      plf: state.plf,
+      notes: state.notes,
+      customCols: state.customCols,
+    };
+    autoSaveTimerRef.current = setTimeout(() => {
+      if (saveProjectData(pid, payload)) {
+        dispatch({ type: 'MARK_SAVED' });
+        const list = getProjectsList();
+        const updated = list.map(p => p.id === pid ? { ...p, updatedAt: new Date().toISOString() } : p);
+        saveProjectsList(updated);
+        setProjects(updated);
+      }
+      autoSaveTimerRef.current = null;
+    }, AUTO_SAVE_DELAY_MS);
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [state.header, state.controls, state.sections, state.rates, state.plf, state.notes, state.customCols, state.dirty, currentProjectId]);
+
+  const setCurrentProject = useCallback((id) => {
+    persistCurrentProjectId(id || null);
+    setCurrentProjectIdState(id || null);
+  }, []);
+
+  const createProject = useCallback((metadata) => {
+    const id = uid('proj');
+    const now = new Date().toISOString();
+    const project = {
+      id,
+      name: metadata.name || 'Untitled Project',
+      address: metadata.address || '',
+      client: metadata.client || '',
+      color: metadata.color || 'slate',
+      createdAt: now,
+      updatedAt: now,
+    };
+    const initialBidState = getBlankBidState({
+      title: metadata.name || 'Untitled Project',
+      scope: metadata.address || '',
+    });
+    saveProjectData(id, initialBidState);
+    const currentList = getProjectsList();
+    const newList = [...currentList, project];
+    saveProjectsList(newList);
+    setProjects(newList);
+    persistCurrentProjectId(id);
+    setCurrentProjectIdState(id);
+    dispatch({ type: 'LOAD_STATE', state: initialBidState });
+    return id;
+  }, []);
+
   const save = useCallback(() => {
-    const success = saveState({
+    if (!currentProjectId) return false;
+    const success = saveProjectData(currentProjectId, {
       header: state.header,
       controls: state.controls,
       sections: state.sections,
@@ -369,37 +476,51 @@ export function BidProvider({ children }) {
       notes: state.notes,
       customCols: state.customCols,
     });
-    if (success) dispatch({ type: 'MARK_SAVED' });
-    return success;
-  }, [state]);
-
-  const load = useCallback(() => {
-    const saved = loadState();
-    if (saved) {
-      dispatch({
-        type: 'LOAD_STATE',
-        state: {
-          header:     saved.header     || clone(defaultHeader),
-          controls:   saved.controls   || clone(defaultControls),
-          sections:   saved.sections   || clone(defaultSections),
-          rates:      saved.rates      || clone(defaultRates),
-          plf:        saved.plf        || clone(defaultPLF),
-          notes:      saved.notes      || clone(defaultNotes),
-          customCols: saved.customCols || [],
-        },
-      });
-      return true;
+    if (success) {
+      dispatch({ type: 'MARK_SAVED' });
+      const list = getProjectsList();
+      const updated = list.map(p => p.id === currentProjectId ? { ...p, updatedAt: new Date().toISOString() } : p);
+      saveProjectsList(updated);
+      setProjects(updated);
     }
-    return false;
-  }, []);
+    return success;
+  }, [state, currentProjectId]);
 
   const reset = useCallback(() => {
-    clearSaved();
-    dispatch({ type: 'RESET' });
-  }, []);
+    if (!currentProjectId) return;
+    const project = projects.find(p => p.id === currentProjectId);
+    const header = project
+      ? { title: project.name || 'Untitled Project', scope: project.address || '' }
+      : {};
+    const blankState = getBlankBidState(header);
+    dispatch({ type: 'LOAD_STATE', state: blankState });
+    saveProjectData(currentProjectId, {
+      header: blankState.header,
+      controls: blankState.controls,
+      sections: blankState.sections,
+      rates: blankState.rates,
+      plf: blankState.plf,
+      notes: blankState.notes,
+      customCols: blankState.customCols,
+    });
+  }, [currentProjectId, projects]);
+
+  const getSavedTime = useCallback(() => getProjectSavedTime(currentProjectId), [currentProjectId]);
 
   return (
-    <BidContext.Provider value={{ state, dispatch, save, load, reset }}>
+    <BidContext.Provider
+      value={{
+        state,
+        dispatch,
+        projects,
+        currentProjectId,
+        setCurrentProject,
+        createProject,
+        save,
+        reset,
+        getSavedTime,
+      }}
+    >
       {children}
     </BidContext.Provider>
   );
