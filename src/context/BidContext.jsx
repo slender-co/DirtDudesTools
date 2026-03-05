@@ -196,14 +196,13 @@ function bidReducer(state, action) {
 
     // ── SECTION ADD/DELETE/RENAME ──────
     case 'ADD_SECTION': {
-      const n = state.sections.length + 1;
       const customDefaults = {};
       state.customCols.forEach(col => {
         customDefaults[col.id] = col.type === 'text' ? '' : 0;
       });
       const newSec = {
         id: uid('sec'),
-        title: n + '. NEW SECTION',
+        title: (state.sections.filter(s => s.id !== 'contingency').length + 1) + '. NEW SECTION',
         items: [{
           id: uid('r'), desc: '(new item)', unit: 'LS', uc: 0, notes: '',
           qtyMode: 'ls', dur: 0, rateId: '', rateCt: 0,
@@ -211,7 +210,11 @@ function bidReducer(state, action) {
           hiddenFromExport: false,
         }],
       };
-      return { ...state, sections: [...state.sections, newSec], dirty: true };
+      // Insert new section before contingency so contingency stays at bottom
+      const contingencyIdx = state.sections.findIndex(s => s.id === 'contingency');
+      const insertAt = contingencyIdx >= 0 ? contingencyIdx : state.sections.length;
+      const sections = [...state.sections.slice(0, insertAt), newSec, ...state.sections.slice(insertAt)];
+      return { ...state, sections, dirty: true };
     }
 
     case 'DELETE_SECTION': {

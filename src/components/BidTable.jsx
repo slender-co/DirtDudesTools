@@ -2,7 +2,7 @@ import React from 'react';
 import { useBid } from '../context/BidContext';
 import {
   getQty, getMaterial, getLabor, getEquip, getLineTotal,
-  isAutoLabor, isAutoEquip, getRate,
+  isAutoLabor, isAutoEquip, getRate, getBasis,
   sectionMaterial, sectionLabor, sectionEquip, sectionTotal,
   grandMaterial, grandLabor, grandEquip, grandTotal,
   evaluateFormula,
@@ -60,6 +60,12 @@ export default function BidTable() {
   const colKeys = getOrderedColKeys(customCols);
   const colVisible = (key) => exportColumnVisibility?.[key] !== false;
 
+  // Contingency section always at bottom; other sections in array order
+  const contingencySec = sections.find(s => s.id === 'contingency');
+  const otherSections = sections.filter(s => s.id !== 'contingency');
+  const orderedSections = [...otherSections, ...(contingencySec ? [contingencySec] : [])];
+
+  const basis = getBasis(controls);
   const laborRates = rates.filter(r => r.cat === 'labor');
   const equipRates = rates.filter(r => r.cat === 'equip');
 
@@ -124,7 +130,7 @@ export default function BidTable() {
         </tr>
       </thead>
       <tbody>
-        {sections.map(sec => {
+        {otherSections.map(sec => {
           const sm = sectionMaterial(sec, controlsOrLength);
           const sl = sectionLabor(sec, rates);
           const se = sectionEquip(sec, rates);
@@ -196,15 +202,32 @@ export default function BidTable() {
                         onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'desc', value: e.target.value })} />
                     </td>
 
-                    {/* Qty — click to cycle mode */}
-                    <td data-col="qty" className={`c n ${!colVisible('qty') ? 'hide-in-export' : ''}`} style={{ cursor: 'pointer' }}
-                      onClick={() => dispatch({ type: 'CYCLE_QTY_MODE', itemId: item.id })}
-                      title="Click to cycle: Primary (from project basis) → LS (1) → Manual (EA)">
+                    {/* Qty — editable per row for LF/SF/CY; manual mode for EA; LS shows 1 */}
+                    <td data-col="qty" className={`c n ${!colVisible('qty') ? 'hide-in-export' : ''}`}
+                      style={{ cursor: (item.qtyMode === 'lf' && ['LF','SF','CY'].includes((item.unit || '').toUpperCase())) || item.qtyMode === 'manual' ? 'default' : 'pointer' }}
+                      onClick={() => { if (item.qtyMode !== 'manual' && !['LF','SF','CY'].includes((item.unit || '').toUpperCase())) dispatch({ type: 'CYCLE_QTY_MODE', itemId: item.id }); }}
+                      title={item.qtyMode === 'manual' ? 'Manual quantity (EA)' : ['LF','SF','CY'].includes((item.unit || '').toUpperCase()) ? 'Editable quantity per row (override project basis)' : 'Click to cycle: Primary → LS (1) → Manual (EA)'}>
                       {item.qtyMode === 'manual' ? (
                         <input className="ei ei-s" type="number" value={item.manualQty === '' || item.manualQty == null ? '' : item.manualQty}
                           onClick={e => e.stopPropagation()}
                           onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'manualQty', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
-                      ) : item.qtyMode === 'lf' ? num(q) : '1'}
+                      ) : (() => {
+                          const unit = (item.unit || 'LS').toUpperCase();
+                          if (unit === 'LF' || unit === 'SF' || unit === 'CY') {
+                            const fallback = unit === 'LF' ? basis.length : unit === 'SF' ? basis.area : basis.volume;
+                            const displayVal = item.basisQtyOverride !== undefined && item.basisQtyOverride !== '' ? item.basisQtyOverride : fallback;
+                            return (
+                              <input
+                                className="ei ei-s qi"
+                                type="number"
+                                value={displayVal === '' || displayVal == null ? '' : displayVal}
+                                onClick={e => e.stopPropagation()}
+                                onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'basisQtyOverride', value: v === '' ? '' : (parseFloat(v) || 0) }); }}
+                              />
+                            );
+                          }
+                          return item.qtyMode === 'lf' ? num(q) : '1';
+                        })()}
                     </td>
 
                     <td data-col="unit" className={`c ${!colVisible('unit') ? 'hide-in-export' : ''}`}>
@@ -336,7 +359,7 @@ export default function BidTable() {
           );
         })}
 
-        {/* Add section button */}
+        {/* Add section button — above contingency so new sections go above it */}
         <tr>
           <td colSpan={totalCols} style={{ padding: 0 }}>
             <button type="button" className="ar ar-section" onClick={() => dispatch({ type: 'ADD_SECTION' })}>
@@ -344,11 +367,154 @@ export default function BidTable() {
             </button>
           </td>
         </tr>
+
+        {/* Contingency section always last */}
+        {contingencySec && (() => {
+          const sec = contingencySec;
+          const sm = sectionMaterial(sec, controlsOrLength);
+          const sl = sectionLabor(sec, rates);
+          const se = sectionEquip(sec, rates);
+          const st = sectionTotal(sec, controlsOrLength, rates);
+          return (
+            <React.Fragment key={sec.id}>
+              <tr>
+                <td colSpan={totalCols} style={{ padding: 0 }}>
+                  <div className={`sh sh-contingency`}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+                      <input
+                        className="sh-edit"
+                        value={sec.title}
+                        onChange={e => dispatch({ type: 'UPDATE_SECTION_TITLE', sectionId: sec.id, title: e.target.value })}
+                      />
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 400, opacity: 0.9, cursor: 'pointer', userSelect: 'none' }}>
+                        <input
+                          type="checkbox"
+                          checked={contingencyOn}
+                          onChange={e => dispatch({ type: 'SET_CONTROL', field: 'contingencyOn', value: e.target.checked })}
+                        />
+                        Include in totals
+                      </label>
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <div className="sb2">
+                        <span>Mat: {currency(sm)}</span>
+                        <span>Lab: {currency(sl)}</span>
+                        <span>Eq: {currency(se)}</span>
+                      </div>
+                      <span className="st">{currency(st)}</span>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              {sec.items.map(item => {
+                rowNum++;
+                const q = getQty(item, controlsOrLength);
+                const mat = getMaterial(item, controlsOrLength);
+                const lab = getLabor(item, rates);
+                const eq = getEquip(item, rates);
+                const tot = getLineTotal(item, controlsOrLength, rates);
+                const autoLab = isAutoLabor(item, rates);
+                const autoEq = isAutoEquip(item, rates);
+                const rateObj = item.rateId ? getRate(rates, item.rateId) : null;
+                const hiddenFromExport = item.hiddenFromExport === true;
+                return (
+                  <tr key={item.id} className={hiddenFromExport ? 'hide-in-export' : ''}>
+                    <td data-col="del" className={`c ${!colVisible('del') ? 'hide-in-export' : ''}`}>
+                      <button className="db" onClick={() => dispatch({ type: 'DELETE_ROW', itemId: item.id })}>✕</button>
+                      <ExportRowToggle hiddenFromExport={hiddenFromExport} onToggle={() => toggleRow(item.id, hiddenFromExport)} />
+                    </td>
+                    <td data-col="num" className={`c n ${!colVisible('num') ? 'hide-in-export' : ''}`}>{rowNum}</td>
+                    <td data-col="desc" className={!colVisible('desc') ? 'hide-in-export' : ''}>
+                      <input className="et" value={item.desc}
+                        onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'desc', value: e.target.value })} />
+                    </td>
+                    <td data-col="qty" className={`c n ${!colVisible('qty') ? 'hide-in-export' : ''}`}
+                      style={{ cursor: (item.qtyMode === 'lf' && ['LF','SF','CY'].includes((item.unit || '').toUpperCase())) || item.qtyMode === 'manual' ? 'default' : 'pointer' }}
+                      onClick={() => { if (item.qtyMode !== 'manual' && !['LF','SF','CY'].includes((item.unit || '').toUpperCase())) dispatch({ type: 'CYCLE_QTY_MODE', itemId: item.id }); }}
+                      title={item.qtyMode === 'manual' ? 'Manual quantity (EA)' : ['LF','SF','CY'].includes((item.unit || '').toUpperCase()) ? 'Editable quantity per row' : 'Click to cycle'}>
+                      {item.qtyMode === 'manual' ? (
+                        <input className="ei ei-s" type="number" value={item.manualQty === '' || item.manualQty == null ? '' : item.manualQty}
+                          onClick={e => e.stopPropagation()}
+                          onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'manualQty', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
+                      ) : (() => {
+                          const unit = (item.unit || 'LS').toUpperCase();
+                          if (unit === 'LF' || unit === 'SF' || unit === 'CY') {
+                            const fallback = unit === 'LF' ? basis.length : unit === 'SF' ? basis.area : basis.volume;
+                            const displayVal = item.basisQtyOverride !== undefined && item.basisQtyOverride !== '' ? item.basisQtyOverride : fallback;
+                            return (
+                              <input className="ei ei-s qi" type="number" value={displayVal === '' || displayVal == null ? '' : displayVal}
+                                onClick={e => e.stopPropagation()}
+                                onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'basisQtyOverride', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
+                            );
+                          }
+                          return item.qtyMode === 'lf' ? num(q) : '1';
+                        })()}
+                    </td>
+                    <td data-col="unit" className={`c ${!colVisible('unit') ? 'hide-in-export' : ''}`}>
+                      <select className="rs" value={item.unit || 'LS'} onChange={e => dispatch({ type: 'UPDATE_ITEM_UNIT', itemId: item.id, value: e.target.value })} style={{ fontSize: 10, padding: '2px 4px', minWidth: 42 }}>
+                        <option value="LF">LF</option><option value="SF">SF</option><option value="CY">CY</option><option value="LS">LS</option><option value="EA">EA</option>
+                      </select>
+                    </td>
+                    <td data-col="uc" className={`r ${!colVisible('uc') ? 'hide-in-export' : ''}`}>
+                      <input className="ei" type="number" step="0.01" value={item.uc === '' || item.uc == null ? '' : item.uc}
+                        onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'uc', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
+                    </td>
+                    <td data-col="material" className={`r n ${!colVisible('material') ? 'hide-in-export' : ''}`}>{currency(mat)}</td>
+                    <td data-col="days" className={`c ${!colVisible('days') ? 'hide-in-export' : ''}`}>
+                      <input className="ei ei-s qi" type="number" step="0.1" value={item.dur === '' || item.dur == null ? '' : item.dur}
+                        onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'dur', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
+                    </td>
+                    <td data-col="resource" className={!colVisible('resource') ? 'hide-in-export' : ''}>
+                      <select className="rs" value={item.rateId || ''} onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'rateId', value: e.target.value })}>
+                        <option value="">— Manual —</option>
+                        {laborRates.length > 0 && <optgroup label="Labor">{laborRates.map(r => <option key={r.id} value={r.id}>{r.name} ({currency(r.rate)}{r.unit})</option>)}</optgroup>}
+                        {equipRates.length > 0 && <optgroup label="Equipment">{equipRates.map(r => <option key={r.id} value={r.id}>{r.name} ({currency(r.rate)}{r.unit})</option>)}</optgroup>}
+                      </select>
+                    </td>
+                    <td data-col="count" className={`c ${!colVisible('count') ? 'hide-in-export' : ''}`}>
+                      <input className="ei ei-s qi" type="number" step="1" value={item.rateCt === '' || item.rateCt == null ? '' : item.rateCt}
+                        onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'rateCt', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />
+                    </td>
+                    <td data-col="labor" className={`r ${!colVisible('labor') ? 'hide-in-export' : ''}`}>
+                      {autoLab ? <span className="n" style={{ color: 'var(--green)' }} title={`Auto: ${rateObj?.name} × ${item.dur}d × ${item.rateCt}`}>{currency(lab)}<span className="auto-tag">auto</span></span>
+                        : <input className="ei li" type="number" step="1" value={item.labor === '' || item.labor == null ? '' : item.labor}
+                          onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'labor', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />}
+                    </td>
+                    <td data-col="equip" className={`r ${!colVisible('equip') ? 'hide-in-export' : ''}`}>
+                      {autoEq ? <span className="n" style={{ color: 'var(--amber)' }} title={`Auto: ${rateObj?.name} × ${item.dur}d × ${item.rateCt}`}>{currency(eq)}<span className="auto-tag">auto</span></span>
+                        : <input className="ei" type="number" step="1" value={item.equip === '' || item.equip == null ? '' : item.equip} style={{ background: 'var(--amber-pale)' }}
+                          onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'equip', value: v === '' ? '' : (parseFloat(v) || 0) }); }} />}
+                    </td>
+                    {customCols.map(col => {
+                      const val = item.custom?.[col.id] ?? (col.type === 'text' ? '' : 0);
+                      const hide = !colVisible(col.id) ? ' hide-in-export' : '';
+                      if (col.type === 'formula') return <td key={col.id} data-col={col.id} className={`r n${hide}`} style={{ color: 'var(--blue)' }}>{currency(evaluateFormula(col.formula, item, controlsOrLength, rates, customCols))}</td>;
+                      if (col.type === 'currency' || col.type === 'number') {
+                        const displayVal = (val === '' || val == null) ? '' : val;
+                        return <td key={col.id} data-col={col.id} className={`r${hide}`}><input className="ei" type="number" step="0.01" value={displayVal} onChange={e => { const v = e.target.value; dispatch({ type: 'UPDATE_ITEM_CUSTOM', itemId: item.id, colId: col.id, value: v === '' ? '' : (parseFloat(v) || 0) }); }} /></td>;
+                      }
+                      return <td key={col.id} data-col={col.id} className={hide}><input className="et" value={val} onChange={e => dispatch({ type: 'UPDATE_ITEM_CUSTOM', itemId: item.id, colId: col.id, value: e.target.value })} /></td>;
+                    })}
+                    <td data-col="total" className={`r n ${!colVisible('total') ? 'hide-in-export' : ''}`} style={{ fontWeight: 400 }}>{currency(tot)}</td>
+                    <td data-col="notes" className={!colVisible('notes') ? 'hide-in-export' : ''}>
+                      <input className="et" value={item.notes} style={{ color: 'var(--gray-400)', fontSize: 9 }} onChange={e => dispatch({ type: 'UPDATE_ITEM', itemId: item.id, field: 'notes', value: e.target.value })} />
+                    </td>
+                  </tr>
+                );
+              })}
+              <tr>
+                <td colSpan={totalCols} style={{ padding: 0 }}>
+                  <button className="ar" onClick={() => dispatch({ type: 'ADD_ROW', sectionId: sec.id })}>+ Add Row</button>
+                </td>
+              </tr>
+            </React.Fragment>
+          );
+        })()}
       </tbody>
     </table>
 
-    {/* Totals in their own section (always all items; not aligned to table columns) */}
-    <BidTotalsSection sections={sections} controls={controlsOrLength} rates={rates} customCols={customCols} />
+    {/* Totals in their own section (contingency last) */}
+    <BidTotalsSection sections={orderedSections} controls={controlsOrLength} rates={rates} customCols={customCols} />
   </>
   );
 }

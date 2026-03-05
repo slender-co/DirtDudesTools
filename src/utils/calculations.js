@@ -18,7 +18,7 @@ function toNum(v) {
 
 /** Normalize controls: support legacy (wallLength/wallHeight) and new (primaryQty/primaryUnit).
  *  Height (secondaryQty) is only used for area when useWallMode is true (wall-style bids). */
-function getBasis(controls) {
+export function getBasis(controls) {
   const c = controls || {};
   const primaryQty = toNum(c.primaryQty ?? c.wallLength);
   const primaryUnit = c.primaryUnit ?? 'LF';
@@ -38,7 +38,8 @@ function getBasis(controls) {
   };
 }
 
-/** Resolve quantity for a line item. controls can be legacy (number = wallLength) or full controls object. */
+/** Resolve quantity for a line item. controls can be legacy (number = wallLength) or full controls object.
+ *  When qtyMode is 'lf' and unit is LF/SF/CY, item.basisQtyOverride (if set) overrides the project basis for that row. */
 export function getQty(item, controlsOrWallLength) {
   const controls = typeof controlsOrWallLength === 'object' ? controlsOrWallLength : { wallLength: controlsOrWallLength, primaryQty: controlsOrWallLength, primaryUnit: 'LF' };
   const basis = getBasis(controls);
@@ -47,13 +48,14 @@ export function getQty(item, controlsOrWallLength) {
   if (mode === 'ls') return 1;
   if (mode === 'manual') return Number(item.manualQty) || 0;
 
-  // 'lf' or 'primary': use project basis by line-item unit
+  // 'lf' or 'primary': use project basis by line-item unit; per-row override when set
   const unit = (item.unit || 'LS').toUpperCase();
-  if (unit === 'LF') return basis.length || 0;
-  if (unit === 'SF') return basis.area || 0;
-  if (unit === 'CY') return basis.volume || 0;
+  const override = item.basisQtyOverride !== undefined && item.basisQtyOverride !== '' ? toNum(item.basisQtyOverride) : null;
+  if (unit === 'LF') return override != null ? override : (basis.length || 0);
+  if (unit === 'SF') return override != null ? override : (basis.area || 0);
+  if (unit === 'CY') return override != null ? override : (basis.volume || 0);
   if (unit === 'LS' || unit === 'EA') return 1;
-  return basis.length || 0;
+  return override != null ? override : (basis.length || 0);
 }
 
 /** Look up a rate card by id */
