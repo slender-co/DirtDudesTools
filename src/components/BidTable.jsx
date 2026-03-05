@@ -55,6 +55,7 @@ function ExportRowToggle({ hiddenFromExport, onToggle }) {
 export default function BidTable() {
   const { state, dispatch } = useBid();
   const { sections, rates, controls, customCols, exportColumnVisibility } = state;
+  const contingencyOn = controls.contingencyOn !== false;
   const controlsOrLength = controls;
   const colKeys = getOrderedColKeys(customCols);
   const colVisible = (key) => exportColumnVisibility?.[key] !== false;
@@ -131,21 +132,32 @@ export default function BidTable() {
 
           return (
             <React.Fragment key={sec.id}>
-              {/* Section header — editable title + delete */}
+              {/* Section header — editable title + delete (or contingency toggle) */}
               <tr>
                 <td colSpan={totalCols} style={{ padding: 0 }}>
-                  <div className="sh">
+                  <div className={`sh ${sec.id === 'contingency' ? 'sh-contingency' : ''}`}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
                       <input
                         className="sh-edit"
                         value={sec.title}
                         onChange={e => dispatch({ type: 'UPDATE_SECTION_TITLE', sectionId: sec.id, title: e.target.value })}
                       />
-                      <button
-                        className="sh-del"
-                        onClick={() => dispatch({ type: 'DELETE_SECTION', sectionId: sec.id })}
-                        title="Delete section"
-                      >✕</button>
+                      {sec.id === 'contingency' ? (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 400, opacity: 0.9, cursor: 'pointer', userSelect: 'none' }}>
+                          <input
+                            type="checkbox"
+                            checked={contingencyOn}
+                            onChange={e => dispatch({ type: 'SET_CONTROL', field: 'contingencyOn', value: e.target.checked })}
+                          />
+                          Include in totals
+                        </label>
+                      ) : (
+                        <button
+                          className="sh-del"
+                          onClick={() => dispatch({ type: 'DELETE_SECTION', sectionId: sec.id })}
+                          title="Delete section"
+                        >✕</button>
+                      )}
                     </div>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                       <div className="sb2">

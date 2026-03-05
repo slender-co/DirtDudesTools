@@ -58,11 +58,19 @@ const item = (id, desc, unit, uc, notes, qtyMode = 'lf', dur = 0, rateId = '', r
 export const BID_TABLE_COL_KEYS = ['del', 'num', 'desc', 'qty', 'unit', 'uc', 'material', 'days', 'resource', 'count', 'labor', 'equip', 'total', 'notes'];
 
 // ─── BLANK TEMPLATE (one section, one row — for new projects & reset) ─
+/** Section id for contingency/allowance; when controls.contingencyOn is false, excluded from totals. */
+export const CONTINGENCY_SECTION_ID = 'contingency';
+
 export const blankSections = [
   {
     id: 'sec1',
     title: '1. NEW SECTION',
     items: [item('r1', '(new item)', 'LS', 0, '', 'ls', 0, '', 0)],
+  },
+  {
+    id: CONTINGENCY_SECTION_ID,
+    title: 'Contingency / Allowance',
+    items: [],
   },
 ];
 
@@ -239,6 +247,7 @@ export const defaultControls = {
   secondaryQty: 0,
   useWallMode: false,      // turn on for wall bids: enables height and area = length × height
   romTarget: 400,
+  contingencyOn: true,    // when true, contingency/allowance section is included in bid totals
 };
 
 // ─── DEFAULT HEADER ────────────────────────────────────────────────

@@ -30,6 +30,7 @@ import {
   getCurrentProjectId,
   setCurrentProjectId as persistCurrentProjectId,
   getProjectSavedTime,
+  deleteProject as deleteProjectStorage,
 } from '../utils/projectsStorage';
 
 // Deep-clone helper
@@ -39,7 +40,9 @@ const clone = (obj) => JSON.parse(JSON.stringify(obj));
 function migrateControls(c) {
   if (!c) return clone(defaultControls);
   const base = { ...clone(defaultControls), ...c };
-  if (c.useWallMode === undefined && (c.wallHeight > 0 || c.secondaryQty > 0)) base.useWallMode = true;
+  const h = Number(c.wallHeight) || Number(c.secondaryQty) || 0;
+  if (c.useWallMode === undefined && h > 0) base.useWallMode = true;
+  if (base.contingencyOn === undefined) base.contingencyOn = true;
   return base;
 }
 
@@ -212,6 +215,7 @@ function bidReducer(state, action) {
     }
 
     case 'DELETE_SECTION': {
+      if (action.sectionId === 'contingency') return state; // Contingency section cannot be deleted
       if (state.sections.length <= 1) return state;
       return {
         ...state,
@@ -436,12 +440,16 @@ export function BidProvider({ children }) {
     if (data && data.sections && data.sections.length > 0) {
       const rawControls = data.controls || clone(defaultControls);
       const controls = migrateControls(rawControls);
+      let sections = data.sections;
+      if (!sections.some(s => s.id === 'contingency')) {
+        sections = [...sections, { id: 'contingency', title: 'Contingency / Allowance', items: [] }];
+      }
       dispatch({
         type: 'LOAD_STATE',
         state: {
           header:     data.header     || clone(defaultHeader),
           controls,
-          sections:   data.sections   || clone(blankSections),
+          sections,
           rates:      data.rates      || clone(defaultRates),
           plf:        data.plf        || clone(defaultPLF),
           notes:      data.notes      || clone(blankNotes),
@@ -488,6 +496,16 @@ export function BidProvider({ children }) {
     persistCurrentProjectId(id || null);
     setCurrentProjectIdState(id || null);
   }, []);
+
+  const deleteProject = useCallback((projectId) => {
+    const newList = deleteProjectStorage(projectId);
+    setProjects(newList);
+    if (currentProjectId === projectId) {
+      persistCurrentProjectId(null);
+      setCurrentProjectIdState(null);
+      dispatch({ type: 'LOAD_STATE', state: getBlankBidState() });
+    }
+  }, [currentProjectId]);
 
   const createProject = useCallback((metadata) => {
     const id = uid('proj');
@@ -569,6 +587,7 @@ export function BidProvider({ children }) {
         currentProjectId,
         setCurrentProject,
         createProject,
+        deleteProject,
         save,
         reset,
         getSavedTime,

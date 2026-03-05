@@ -8,16 +8,20 @@ import {
 import { currency, num } from '../utils/formatters';
 
 export default function Summary() {
-  const { state } = useBid();
+  const { state, dispatch } = useBid();
   const { sections, rates, controls } = state;
   const romTarget = controls.romTarget ?? 0;
   const primaryUnit = controls.primaryUnit ?? 'LF';
   const basis = getBidMetrics(sections, controls, rates);
 
+  const contingencySec = sections.find(s => s.id === 'contingency');
+  const contingencyTotal = contingencySec ? sectionTotal(contingencySec, controls, rates) : 0;
+  const contingencyOn = controls.contingencyOn !== false;
+
   const gt = grandTotal(sections, controls, rates);
   const tm = grandMaterial(sections, controls);
-  const tl = grandLabor(sections, rates);
-  const te = grandEquip(sections, rates);
+  const tl = grandLabor(sections, rates, controls);
+  const te = grandEquip(sections, rates, controls);
   const td = totalDuration(sections);
   const { perUnit, unitLabel, basisQty } = basis;
   const rom = !basis.basis.isLumpSum && basisQty > 0 ? basisQty * romTarget : 0;
@@ -43,6 +47,23 @@ export default function Summary() {
           <Card label="Wall+footing $/LF" value={currency(wPerUnit)} sub="Sections named wall/ftg only" />
         )}
         <Card label="Est. duration" value={`${td.toFixed(1)}d`} sub="Sum of section peaks" />
+        {contingencySec && (
+          <div className={`cd cd-contingency ${!contingencyOn ? 'cd-contingency-off' : ''}`}>
+            <div className="cl" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              Contingency / Allowance
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 400, cursor: 'pointer', userSelect: 'none' }}>
+                <input
+                  type="checkbox"
+                  checked={contingencyOn}
+                  onChange={e => dispatch({ type: 'SET_CONTROL', field: 'contingencyOn', value: e.target.checked })}
+                />
+                Include in totals
+              </label>
+            </div>
+            <div className="cv">{currency(contingencyTotal)}</div>
+            <div className="cs">{contingencyOn ? 'Included in bid total above' : 'Excluded from bid total'}</div>
+          </div>
+        )}
       </div>
 
       <div style={{ padding: '0 16px' }}>
@@ -77,16 +98,18 @@ export default function Summary() {
             {sections.map((sec, i) => {
               const st = sectionTotal(sec, controls, rates);
               const sd = sectionDuration(sec);
+              const isContingencyExcluded = sec.id === 'contingency' && !contingencyOn;
+              const pct = gt && !isContingencyExcluded ? (st / gt * 100).toFixed(1) : null;
               return (
-                <tr key={sec.id} style={{ background: i % 2 === 0 ? '#fff' : 'var(--gray-50)' }}>
+                <tr key={sec.id} style={{ background: i % 2 === 0 ? '#fff' : 'var(--gray-50)', opacity: isContingencyExcluded ? 0.7 : 1 }}>
                   <td className="c n">{i + 1}</td>
-                  <td>{sec.title}</td>
+                  <td>{sec.title}{isContingencyExcluded ? ' (excluded)' : ''}</td>
                   <td className="r n">{currency(sectionMaterial(sec, controls))}</td>
                   <td className="r n">{currency(sectionLabor(sec, rates))}</td>
                   <td className="r n">{currency(sectionEquip(sec, rates))}</td>
                   <td className="r n">{sd > 0 ? `${sd.toFixed(1)}d` : '—'}</td>
                   <td className="r n" style={{ fontWeight: 400 }}>{currency(st)}</td>
-                  <td className="r n">{gt ? `${(st/gt*100).toFixed(1)}%` : '0%'}</td>
+                  <td className="r n">{pct != null ? `${pct}%` : '—'}</td>
                 </tr>
               );
             })}

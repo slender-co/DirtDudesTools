@@ -4,7 +4,7 @@ import { PROJECT_COLORS } from '../utils/projectsStorage';
 import NewProjectModal from './NewProjectModal';
 
 export default function ProjectsPage({ onOpenProject }) {
-  const { projects, currentProjectId, setCurrentProject, createProject } = useBid();
+  const { projects, currentProjectId, setCurrentProject, createProject, deleteProject } = useBid();
   const [showNewModal, setShowNewModal] = useState(false);
 
   const getColorHex = (colorId) => PROJECT_COLORS.find(c => c.id === colorId)?.hex || '#475569';
@@ -18,6 +18,13 @@ export default function ProjectsPage({ onOpenProject }) {
   const handleSelectProject = (id) => {
     setCurrentProject(id);
     if (onOpenProject) onOpenProject('bid');
+  };
+
+  const handleDeleteProject = (e, projectId, projectName) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!window.confirm(`Delete project "${projectName || 'Untitled'}"? This cannot be undone.`)) return;
+    deleteProject(projectId);
   };
 
   return (
@@ -42,11 +49,13 @@ export default function ProjectsPage({ onOpenProject }) {
           </div>
         ) : (
           projects.map(project => (
-            <button
+            <div
               key={project.id}
-              type="button"
+              role="button"
+              tabIndex={0}
               className={`project-card ${currentProjectId === project.id ? 'active' : ''}`}
               onClick={() => handleSelectProject(project.id)}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectProject(project.id); } }}
             >
               <span className="project-card-dot" style={{ background: getColorHex(project.color) }} />
               <div className="project-card-body">
@@ -58,7 +67,16 @@ export default function ProjectsPage({ onOpenProject }) {
                 </span>
               </div>
               <span className="project-card-arrow">→</span>
-            </button>
+              <button
+                type="button"
+                className="project-card-delete"
+                onClick={e => handleDeleteProject(e, project.id, project.name)}
+                title="Delete project"
+                aria-label="Delete project"
+              >
+                ✕
+              </button>
+            </div>
           ))
         )}
       </div>

@@ -5,15 +5,24 @@
  * and unit (LF, SF, CY, LS, EA) to resolve quantity from project controls.
  */
 
+// ─── HELPERS ──────────────────────────────────────────────────────
+
+/** Coerce to number for calculations; empty string / null / undefined → 0 (fixes "stuck 0" when user clears field) */
+function toNum(v) {
+  if (v === '' || v == null) return 0;
+  const n = Number(v);
+  return Number.isNaN(n) ? 0 : n;
+}
+
 // ─── BASIS HELPERS ────────────────────────────────────────────────
 
 /** Normalize controls: support legacy (wallLength/wallHeight) and new (primaryQty/primaryUnit).
  *  Height (secondaryQty) is only used for area when useWallMode is true (wall-style bids). */
 function getBasis(controls) {
   const c = controls || {};
-  const primaryQty = c.primaryQty ?? c.wallLength ?? 0;
+  const primaryQty = toNum(c.primaryQty ?? c.wallLength);
   const primaryUnit = c.primaryUnit ?? 'LF';
-  const secondaryQty = c.secondaryQty ?? c.wallHeight ?? 0;
+  const secondaryQty = toNum(c.secondaryQty ?? c.wallHeight);
   const useWallMode = c.useWallMode ?? false;
   const length = primaryUnit === 'LF' ? primaryQty : 0;
   const areaFromLengthHeight = primaryUnit === 'LF' && useWallMode && secondaryQty ? primaryQty * secondaryQty : 0;
@@ -45,13 +54,6 @@ export function getQty(item, controlsOrWallLength) {
   if (unit === 'CY') return basis.volume || 0;
   if (unit === 'LS' || unit === 'EA') return 1;
   return basis.length || 0;
-}
-
-/** Coerce to number for calculations; empty string / null / undefined → 0 (fixes "stuck 0" when user clears field) */
-function toNum(v) {
-  if (v === '' || v == null) return 0;
-  const n = Number(v);
-  return Number.isNaN(n) ? 0 : n;
 }
 
 /** Look up a rate card by id */
@@ -129,21 +131,30 @@ export function sectionDuration(section) {
 }
 
 // ─── GRAND TOTALS ─────────────────────────────────────────────────
+/** Sections to include in totals: exclude contingency section when contingencyOn is false. */
+function effectiveSections(sections, controls) {
+  const c = typeof controls === 'object' && controls ? controls : {};
+  return sections.filter(sec => sec.id !== 'contingency' || c.contingencyOn !== false);
+}
 
 export function grandMaterial(sections, controlsOrWallLength) {
-  return sections.reduce((sum, sec) => sum + sectionMaterial(sec, controlsOrWallLength), 0);
+  const controls = typeof controlsOrWallLength === 'object' ? controlsOrWallLength : {};
+  return effectiveSections(sections, controls).reduce((sum, sec) => sum + sectionMaterial(sec, controlsOrWallLength), 0);
 }
 
-export function grandLabor(sections, rates) {
-  return sections.reduce((sum, sec) => sum + sectionLabor(sec, rates), 0);
+export function grandLabor(sections, rates, controls) {
+  const c = typeof controls === 'object' ? controls : {};
+  return effectiveSections(sections, c).reduce((sum, sec) => sum + sectionLabor(sec, rates), 0);
 }
 
-export function grandEquip(sections, rates) {
-  return sections.reduce((sum, sec) => sum + sectionEquip(sec, rates), 0);
+export function grandEquip(sections, rates, controls) {
+  const c = typeof controls === 'object' ? controls : {};
+  return effectiveSections(sections, c).reduce((sum, sec) => sum + sectionEquip(sec, rates), 0);
 }
 
 export function grandTotal(sections, controlsOrWallLength, rates) {
-  return sections.reduce((sum, sec) => sum + sectionTotal(sec, controlsOrWallLength, rates), 0);
+  const controls = typeof controlsOrWallLength === 'object' ? controlsOrWallLength : {};
+  return effectiveSections(sections, controls).reduce((sum, sec) => sum + sectionTotal(sec, controlsOrWallLength, rates), 0);
 }
 
 export function totalDuration(sections) {

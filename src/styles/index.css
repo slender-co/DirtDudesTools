@@ -499,6 +499,9 @@ input[type="number"]::-webkit-inner-spin-button {
 .cd.wa .cv { color: var(--warning); }
 .cd.mc2 { border-left: 4px solid var(--accent-blue); }
 .cd.lc2 { border-left: 4px solid var(--accent-green); }
+.cd-contingency { border-left: 4px solid var(--purple); }
+.cd-contingency-off { opacity: 0.85; background: var(--gray-50) !important; }
+.sh-contingency { background: #581c87; }
 .cd.ec2 { border-left: 4px solid var(--accent-orange); }
 
 /* Split bar */
@@ -603,8 +606,9 @@ button.cc { cursor: pointer; font: inherit; text-align: left; }
 .btn-new-project.secondary:hover { background: var(--gray-300); }
 .projects-list { display: flex; flex-direction: column; gap: 8px; }
 .project-card {
+  position: relative;
   display: flex; align-items: center; gap: 12px;
-  width: 100%; padding: 14px 18px; text-align: left;
+  width: 100%; padding: 14px 18px; padding-right: 40px; text-align: left;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
   font-family: var(--font-sans); cursor: pointer; transition: border-color 0.15s, background 0.15s;
 }
@@ -617,6 +621,14 @@ button.cc { cursor: pointer; font: inherit; text-align: left; }
 .project-card-client { font-size: 11px; color: var(--text-subtle); }
 .project-card-meta { font-size: 10px; color: var(--text-subtle); margin-top: 2px; }
 .project-card-arrow { color: var(--text-subtle); font-size: 14px; }
+.project-card-delete {
+  position: absolute; top: 10px; right: 10px;
+  width: 24px; height: 24px; padding: 0; border: none; border-radius: 4px;
+  background: transparent; color: var(--text-subtle); font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s, background 0.15s;
+}
+.project-card-delete:hover { background: var(--red); color: #fff; }
 .projects-empty {
   padding: 48px 24px; text-align: center; background: var(--surface-alt);
   border: 1px dashed var(--border); border-radius: var(--radius);

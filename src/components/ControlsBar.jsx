@@ -67,10 +67,10 @@ export default function ControlsBar() {
           <label>Height (FT)</label>
           <input
             type="number"
-            value={secondaryQty}
+            value={secondaryQty === '' || secondaryQty == null ? '' : secondaryQty}
             step={0.5}
             min={0}
-            onChange={e => setCtrl('secondaryQty', parseFloat(e.target.value) || 0)}
+            onChange={e => { const v = e.target.value; setCtrl('secondaryQty', v === '' ? '' : (parseFloat(v) || 0)); }}
           />
         </div>
       )}

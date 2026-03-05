@@ -1,15 +1,19 @@
 import React from 'react';
 import { useBid } from '../context/BidContext';
+import { sectionTotal } from '../utils/calculations';
 import { currency } from '../utils/formatters';
 
 export default function PLFBreakdown() {
   const { state, dispatch } = useBid();
-  const { plf, controls } = state;
+  const { plf, controls, sections, rates } = state;
   const primaryQty = controls.primaryQty ?? controls.wallLength ?? 0;
   const romTarget = controls.romTarget ?? controls.romPLF ?? 0;
   const primaryUnit = controls.primaryUnit ?? 'LF';
   const unitLabel = primaryUnit === 'LS' ? '' : primaryUnit;
   const useWallMode = controls.useWallMode ?? false;
+  const contingencySec = sections.find(s => s.id === 'contingency');
+  const contingencyTotal = contingencySec ? sectionTotal(contingencySec, controls, rates) : 0;
+  const contingencyOn = controls.contingencyOn !== false;
 
   const totalPct = plf.reduce((s, i) => s + i.pct, 0);
   const wallPct  = plf.filter(i => i.group === 'wall').reduce((s, i) => s + i.pct, 0);
@@ -27,6 +31,25 @@ export default function PLFBreakdown() {
   if (isEmpty) {
     return (
       <div className="bp" style={{ paddingTop: 16 }}>
+        {contingencySec && (
+          <div style={{ padding: '0 16px 14px' }}>
+            <div className={`cd cd-contingency ${!contingencyOn ? 'cd-contingency-off' : ''}`}>
+              <div className="cl" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                Contingency / Allowance
+                <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 400, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={contingencyOn}
+                    onChange={e => dispatch({ type: 'SET_CONTROL', field: 'contingencyOn', value: e.target.checked })}
+                  />
+                  Include in totals
+                </label>
+              </div>
+              <div className="cv">{currency(contingencyTotal)}</div>
+              <div className="cs">{contingencyOn ? 'Included in bid total' : 'Excluded from bid total'}</div>
+            </div>
+          </div>
+        )}
         <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
           <p style={{ marginBottom: 12 }}>No cost allocation yet. Add components below to break down your target $/{unitLabel || 'unit'}.</p>
           <p style={{ fontSize: 12, marginBottom: 16 }}>Summary and Line items totals will drive the numbers here as you build the bid.</p>
@@ -46,6 +69,25 @@ export default function PLFBreakdown() {
   // Wall mode: show Wall Stem / Footing cards and grouped table. Otherwise: single cost allocation.
   return (
     <div className="bp" style={{ paddingTop: 16 }}>
+      {contingencySec && (
+        <div style={{ padding: '0 16px 14px' }}>
+          <div className={`cd cd-contingency ${!contingencyOn ? 'cd-contingency-off' : ''}`}>
+            <div className="cl" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              Contingency / Allowance
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 400, cursor: 'pointer', userSelect: 'none' }}>
+                <input
+                  type="checkbox"
+                  checked={contingencyOn}
+                  onChange={e => dispatch({ type: 'SET_CONTROL', field: 'contingencyOn', value: e.target.checked })}
+                />
+                Include in totals
+              </label>
+            </div>
+            <div className="cv">{currency(contingencyTotal)}</div>
+            <div className="cs">{contingencyOn ? 'Included in bid total' : 'Excluded from bid total'}</div>
+          </div>
+        </div>
+      )}
       {useWallMode ? (
         <>
           <div style={{ padding: '0 16px 10px', display: 'flex', gap: 12, flexWrap: 'wrap' }}>

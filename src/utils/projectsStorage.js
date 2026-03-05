@@ -94,3 +94,17 @@ export function getProjectSavedTime(projectId) {
     return null;
   }
 }
+
+/** Delete a project: remove from list and remove its stored data. Returns new list. */
+export function deleteProject(projectId) {
+  if (!projectId) return getProjectsList();
+  try {
+    localStorage.removeItem(PROJECT_DATA_PREFIX + projectId);
+    const list = getProjectsList().filter(p => p.id !== projectId);
+    saveProjectsList(list);
+    return list;
+  } catch (e) {
+    console.error('deleteProject failed:', e);
+    return getProjectsList();
+  }
+}
